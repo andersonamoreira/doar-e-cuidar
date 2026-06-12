@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doar é Cuidar</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --verde:#1B7A4A;--verde2:#25A065;--verde3:#E8F5EE;--verde4:#D0EDDF;
+  --terra:#C85A1A;--terra2:#F4EDE6;
+  --creme:#FAF8F4;--branco:#FFFFFF;
+  --cinza1:#F5F4F0;--cinza2:#E8E6E0;--cinza3:#B8B4AA;--cinza4:#7A7670;
+  --preto:#1A1A16;--texto:#2D2C28;--texto2:#5C5A54;
+  --sombra:0 2px 16px rgba(27,122,74,0.10);
+  --sombra2:0 8px 40px rgba(27,122,74,0.14);
+  --r:16px;--r2:12px;--r3:8px;
+  --fonte:'Sora',sans-serif;--fonte2:'DM Sans',sans-serif;
+  --trans:all .22s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth;font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--fonte2);background:var(--creme);color:var(--texto);min-height:100vh;overflow-x:hidden}
+
+/* ── UTILITÁRIOS ── */
+.hidden{display:none!important}
+.flex{display:flex}.col{flex-direction:column}.row{flex-direction:row}
+.gap4{gap:4px}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}.gap24{gap:24px}
+.align-center{align-items:center}.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}
+.fw500{font-weight:500}.fw600{font-weight:600}.fw700{font-weight:700}.fw800{font-weight:800}
+.fs12{font-size:.8rem}.fs13{font-size:.867rem}.fs14{font-size:.933rem}.fs16{font-size:1.067rem}
+.fs18{font-size:1.2rem}.fs20{font-size:1.333rem}.fs24{font-size:1.6rem}.fs28{font-size:1.867rem}
+.fs36{font-size:2.4rem}.fs48{font-size:3.2rem}
+.verde{color:var(--verde)}.terra{color:var(--terra)}.muted{color:var(--texto2)}
+.w100{width:100%}.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt24{margin-top:24px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb24{margin-bottom:24px}
+.p16{padding:16px}.p24{padding:24px}.px16{padding:0 16px}.py8{padding:8px 0}.py12{padding:12px 0}
+.text-center{text-align:center}.lh14{line-height:1.4}.lh16{line-height:1.6}
+.radius{border-radius:var(--r)}.radius2{border-radius:var(--r2)}.radius3{border-radius:var(--r3)}
+.bg-verde3{background:var(--verde3)}.bg-branco{background:var(--branco)}.bg-creme{background:var(--creme)}
+.border{border:1px solid var(--cinza2)}.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;font-size:.8rem;font-weight:600}
+.badge-verde{background:var(--verde3);color:var(--verde)}.badge-terra{background:var(--terra2);color:var(--terra)}
+.badge-cinza{background:var(--cinza1);color:var(--cinza4)}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:.767rem;font-weight:500;background:var(--cinza1);color:var(--cinza4)}
+
+/* ── BOTÕES ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--r3);font-family:var(--fonte);font-size:.933rem;font-weight:600;cursor:pointer;border:none;transition:var(--trans);text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--verde);color:#fff}.btn-primary:hover{background:#155f39;transform:translateY(-1px);box-shadow:var(--sombra2)}
+.btn-secondary{background:var(--branco);color:var(--verde);border:2px solid var(--verde)}.btn-secondary:hover{background:var(--verde3)}
+.btn-ghost{background:transparent;color:var(--verde)}.btn-ghost:hover{background:var(--verde3)}
+.btn-terra{background:var(--terra);color:#fff}.btn-terra:hover{background:#a34712}
+.btn-sm{padding:7px 14px;font-size:.833rem}
+.btn-lg{padding:14px 28px;font-size:1.067rem}
+.btn-full{width:100%}
+
+/* ── INPUTS ── */
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:.867rem;font-weight:600;color:var(--texto)}
+.input{width:100%;padding:10px 14px;border:1.5px solid var(--cinza2);border-radius:var(--r3);font-family:var(--fonte2);font-size:.933rem;color:var(--texto);background:var(--branco);transition:var(--trans);outline:none}
+.input:focus{border-color:var(--verde);box-shadow:0 0 0 3px rgba(27,122,74,.12)}
+.input::placeholder{color:var(--cinza3)}
+textarea.input{resize:vertical;min-height:100px}
+select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A7670' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(250,248,244,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--cinza2);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--fonte);font-size:1.2rem;font-weight:800;color:var(--verde);cursor:pointer;display:flex;align-items:center;gap:8px}
+.nav-logo span{color:var(--terra)}
+.nav-links{display:flex;align-items:center;gap:8px}
+.nav-link{padding:8px 14px;border-radius:var(--r3);font-weight:500;cursor:pointer;color:var(--texto2);transition:var(--trans);font-size:.933rem;border:none;background:transparent;font-family:var(--fonte2)}
+.nav-link:hover,.nav-link.active{background:var(--verde3);color:var(--verde)}
+.nav-avatar{width:36px;height:36px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.867rem;cursor:pointer;border:none;font-family:var(--fonte2);transition:var(--trans)}
+.nav-avatar:hover{background:#155f39}
+.nav-mobile{display:none}
+
+/* ── TELAS ── */
+.tela{display:none;min-height:100vh}
+.tela.ativa{display:block}
+
+/* ══ LANDING ══ */
+#tela-landing{background:var(--creme)}
+.hero{padding:80px 24px 64px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--verde3);color:var(--verde);padding:6px 14px;border-radius:100px;font-size:.833rem;font-weight:600;margin-bottom:24px;border:1px solid var(--verde4)}
+.hero-title{font-family:var(--fonte);font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1.15;color:var(--preto)}
+.hero-title em{font-style:normal;color:var(--verde)}
+.hero-subtitle{margin-top:16px;font-size:1.067rem;line-height:1.7;color:var(--texto2)}
+.hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:32px;margin-top:40px}
+.hero-stat-num{font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:var(--verde)}
+.hero-stat-label{font-size:.8rem;color:var(--texto2);margin-top:2px}
+.hero-visual{position:relative}
+.hero-card{background:var(--branco);border-radius:20px;padding:24px;box-shadow:var(--sombra2);border:1px solid var(--cinza2)}
+.hero-card-img{width:100%;height:160px;border-radius:12px;background:linear-gradient(135deg,#C8E6C9,#A5D6A7);display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:16px}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:var(--verde3);color:var(--verde);padding:5px 12px;border-radius:100px;font-size:.8rem;font-weight:600}
+.float-card{position:absolute;background:var(--branco);border-radius:12px;padding:12px 16px;box-shadow:var(--sombra2);border:1px solid var(--cinza2);display:flex;align-items:center;gap:10px}
+.float-card-1{top:-16px;right:-16px}
+.float-card-2{bottom:24px;left:-32px}
+.float-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+
+.como-funciona{background:var(--branco);padding:80px 24px;border-top:1px solid var(--cinza2)}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-title{font-family:var(--fonte);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:var(--preto);text-align:center}
+.section-sub{text-align:center;color:var(--texto2);margin-top:12px;font-size:1.067rem;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.6}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:56px}
+.step{text-align:center}
+.step-num{width:52px;height:52px;border-radius:50%;background:var(--verde3);color:var(--verde);font-family:var(--fonte);font-size:1.2rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step-title{font-family:var(--fonte);font-weight:700;font-size:1.067rem;color:var(--preto);margin-bottom:8px}
+.step-desc{font-size:.933rem;color:var(--texto2);line-height:1.6}
+
+.recentes{padding:80px 24px;max-width:1100px;margin:0 auto}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:40px}
+
+/* ══ CARDS DE ITEM ══ */
+.item-card{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);overflow:hidden;transition:var(--trans);cursor:pointer}
+.item-card:hover{transform:translateY(-4px);box-shadow:var(--sombra2);border-color:var(--verde4)}
+.item-card-img{width:100%;height:180px;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--cinza1)}
+.item-card-body{padding:16px}
+.item-card-cat{font-size:.767rem;font-weight:600;color:var(--verde);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.item-card-title{font-family:var(--fonte);font-weight:700;font-size:1rem;color:var(--preto);margin-bottom:6px;line-height:1.3}
+.item-card-desc{font-size:.867rem;color:var(--texto2);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--cinza1)}
+.item-card-user{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--texto2)}
+.avatar-xs{width:24px;height:24px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0}
+.item-card-cands{font-size:.8rem;color:var(--cinza3);display:flex;align-items:center;gap:4px}
+
+/* ══ LOGIN / CADASTRO ══ */
+#tela-auth{background:var(--creme);min-height:100vh;display:none;align-items:center;justify-content:center;padding:40px 16px}
+#tela-auth.ativa{display:flex}
+.auth-box{background:var(--branco);border-radius:24px;padding:40px;max-width:440px;width:100%;border:1px solid var(--cinza2);box-shadow:var(--sombra)}
+.auth-logo{text-align:center;margin-bottom:32px}
+.auth-logo-mark{width:56px;height:56px;border-radius:16px;background:var(--verde);display:inline-flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:12px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--cinza1);border-radius:var(--r3);padding:4px;margin-bottom:28px}
+.auth-tab{padding:9px;border-radius:6px;text-align:center;font-weight:600;font-size:.933rem;cursor:pointer;transition:var(--trans);color:var(--cinza4);border:none;background:transparent;font-family:var(--fonte2)}
+.auth-tab.active{background:var(--branco);color:var(--verde);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.form-stack{display:flex;flex-direction:column;gap:16px}
+.divider{text-align:center;color:var(--cinza3);font-size:.833rem;position:relative;margin:4px 0}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--cinza2)}
+.divider::before{left:0}.divider::after{right:0}
+
+/* ══ FEED ══ */
+#tela-feed{min-height:100vh}
+.feed-layout{max-width:1200px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:240px 1fr;gap:32px;align-items:start}
+.sidebar{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:20px;position:sticky;top:80px}
+.sidebar-title{font-family:var(--fonte);font-weight:700;font-size:.933rem;color:var(--texto);margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.filter-group{margin-bottom:20px}
+.filter-label{font-size:.833rem;font-weight:600;color:var(--texto2);margin-bottom:8px;display:block}
+.filter-options{display:flex;flex-direction:column;gap:4px}
+.filter-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r3);cursor:pointer;transition:var(--trans);font-size:.867rem;color:var(--texto)}
+.filter-opt:hover,.filter-opt.active{background:var(--verde3);color:var(--verde)}
+.filter-opt input[type=checkbox]{accent-color:var(--verde)}
+.search-bar{position:relative;margin-bottom:24px}
+.search-bar input{width:100%;padding:12px 16px 12px 44px;border:1.5px solid var(--cinza2);border-radius:100px;font-size:.933rem;color:var(--texto);background:var(--branco);outline:none;transition:var(--trans);font-family:var(--fonte2)}
+.search-bar input:focus{border-color:var(--verde);box-shadow:0 0 0 3px rgba(27,122,74,.1)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--cinza3);pointer-events:none}
+.feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.feed-title{font-family:var(--fonte);font-weight:800;font-size:1.467rem;color:var(--preto)}
+.feed-count{font-size:.867rem;color:var(--texto2)}
+.sort-select{padding:8px 12px;border:1.5px solid var(--cinza2);border-radius:var(--r3);font-size:.867rem;color:var(--texto);background:var(--branco);cursor:pointer;font-family:var(--fonte2);outline:none}
+
+/* ══ DETALHE ITEM ══ */
+#tela-detalhe{min-height:100vh;display:none}
+#tela-detalhe.ativa{display:block}
+.detalhe-layout{max-width:1100px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:1fr 380px;gap:40px;align-items:start}
+.detalhe-img{width:100%;height:340px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:5rem;background:var(--cinza1);border:1px solid var(--cinza2);margin-bottom:16px}
+.detalhe-thumbs{display:flex;gap:8px}
+.thumb{width:72px;height:72px;border-radius:var(--r3);display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--cinza1);border:2px solid transparent;cursor:pointer;transition:var(--trans)}
+.thumb.active{border-color:var(--verde)}
+.detalhe-side{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:24px;position:sticky;top:80px}
+.doador-mini{display:flex;align-items:center;gap:12px;padding:12px;background:var(--cinza1);border-radius:var(--r3);margin-bottom:20px}
+.avatar-sm{width:40px;height:40px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.867rem;flex-shrink:0}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:.833rem;font-weight:600}
+.status-disponivel{background:#E8F5E9;color:#2E7D32}
+.status-concluido{background:#FFEBEE;color:#C62828}
+
+/* ══ MODAL ══ */
+.modal-backdrop{position:fixed;inset:0;background:rgba(26,26,22,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal{background:var(--branco);border-radius:20px;padding:32px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;animation:modalIn .22s ease}
+@keyframes modalIn{from{transform:scale(.94) translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.modal-header{display:flex;align-items:start;justify-content:space-between;margin-bottom:24px}
+.modal-close{background:var(--cinza1);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--cinza4);font-size:1.1rem;transition:var(--trans)}
+.modal-close:hover{background:var(--cinza2)}
+.success-modal{text-align:center}
+.success-icon{width:72px;height:72px;border-radius:50%;background:var(--verde3);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 20px}
+
+/* ══ PUBLICAR ══ */
+#tela-publicar{min-height:100vh}
+.publicar-layout{max-width:720px;margin:0 auto;padding:40px 24px}
+.steps-nav{display:flex;align-items:center;gap:0;margin-bottom:40px}
+.step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.867rem;flex-shrink:0;transition:var(--trans)}
+.step-dot.done{background:var(--verde);color:#fff}
+.step-dot.current{background:var(--verde);color:#fff;box-shadow:0 0 0 4px var(--verde3)}
+.step-dot.pending{background:var(--cinza1);color:var(--cinza3)}
+.step-line{flex:1;height:2px;background:var(--cinza2);transition:var(--trans)}
+.step-line.done{background:var(--verde)}
+.step-label{font-size:.733rem;font-weight:600;color:var(--cinza3);text-align:center;margin-top:6px}
+.steps-labels{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-bottom:32px}
+.upload-area{border:2px dashed var(--cinza2);border-radius:var(--r);padding:40px;text-align:center;cursor:pointer;transition:var(--trans)}
+.upload-area:hover{border-color:var(--verde);background:var(--verde3)}
+.upload-previews{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.upload-preview{aspect-ratio:1;border-radius:var(--r3);font-size:1.6rem;display:flex;align-items:center;justify-content:center;background:var(--cinza1);border:1px solid var(--cinza2)}
+
+/* ══ PAINEL DOADOR ══ */
+#tela-painel{min-height:100vh}
+.painel-layout{max-width:1100px;margin:0 auto;padding:32px 24px}
+.painel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+.meus-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.meu-item{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);overflow:hidden;transition:var(--trans)}
+.meu-item:hover{border-color:var(--cinza3)}
+.meu-item-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;background:var(--cinza1)}
+.meu-item-body{padding:16px}
+.meu-item-footer{padding:12px 16px;border-top:1px solid var(--cinza1);display:flex;align-items:center;justify-content:space-between}
+.cands-badge{display:inline-flex;align-items:center;gap:4px;background:var(--verde3);color:var(--verde);padding:4px 10px;border-radius:100px;font-size:.8rem;font-weight:600}
+
+/* ══ CANDIDATURAS MODAL ══ */
+.cand-item{padding:16px;border-bottom:1px solid var(--cinza1);display:flex;gap:12px}
+.cand-item:last-child{border-bottom:none}
+.cand-just{font-size:.867rem;color:var(--texto2);line-height:1.5;margin-top:6px;font-style:italic}
+
+/* ══ DASHBOARD ══ */
+#tela-dashboard{min-height:100vh}
+.dash-layout{max-width:1200px;margin:0 auto;padding:32px 24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.kpi-card{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:20px}
+.kpi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px}
+.kpi-num{font-family:var(--fonte);font-size:1.867rem;font-weight:800;color:var(--preto)}
+.kpi-label{font-size:.833rem;color:var(--texto2);margin-top:4px}
+.kpi-change{font-size:.8rem;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:4px}
+.kpi-up{color:#2E7D32}.kpi-down{color:#C62828}
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px}
+.chart-card{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:20px}
+.chart-title{font-family:var(--fonte);font-weight:700;font-size:.933rem;color:var(--preto);margin-bottom:20px}
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:160px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bar{width:100%;border-radius:6px 6px 0 0;transition:height .4s ease;min-height:4px}
+.bar-label{font-size:.7rem;color:var(--cinza4);text-align:center}
+.bar-val{font-size:.733rem;font-weight:600;color:var(--texto)}
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.8rem}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.table-card{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);overflow:hidden}
+.dash-table{width:100%;border-collapse:collapse}
+.dash-table th{padding:12px 16px;text-align:left;font-size:.8rem;font-weight:700;color:var(--texto2);background:var(--cinza1);text-transform:uppercase;letter-spacing:.04em}
+.dash-table td{padding:12px 16px;font-size:.867rem;color:var(--texto);border-top:1px solid var(--cinza1)}
+.dash-table tr:hover td{background:var(--verde3)}
+
+/* ══ PERFIL ══ */
+#tela-perfil{min-height:100vh}
+.perfil-layout{max-width:900px;margin:0 auto;padding:40px 24px}
+.perfil-header{background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:32px;display:flex;align-items:center;gap:24px;margin-bottom:24px}
+.avatar-lg{width:80px;height:80px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fonte);font-size:1.867rem;font-weight:800}
+.perfil-tabs{display:flex;gap:4px;background:var(--cinza1);border-radius:var(--r3);padding:4px;margin-bottom:24px}
+.perfil-tab{flex:1;padding:9px;border-radius:6px;text-align:center;font-weight:600;font-size:.867rem;cursor:pointer;transition:var(--trans);color:var(--cinza4);border:none;background:transparent;font-family:var(--fonte2)}
+.perfil-tab.active{background:var(--branco);color:var(--verde)}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--preto);color:#fff;padding:14px 20px;border-radius:var(--r3);font-size:.867rem;font-weight:500;z-index:300;animation:toastIn .3s ease;max-width:320px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+
+/* ══ RESPONSIVO ══ */
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr;gap:32px;padding:48px 16px 40px}
+  .hero-visual{display:none}
+  .hero-stats{gap:20px}
+  .steps{grid-template-columns:1fr}
+  .feed-layout{grid-template-columns:1fr;padding:16px}
+  .sidebar{position:static}
+  .detalhe-layout{grid-template-columns:1fr;padding:16px}
+  .detalhe-side{position:static}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .nav-links .nav-link:not(.nav-link-btn){display:none}
+  .meus-items{grid-template-columns:1fr}
+  .painel-layout,.dash-layout,.publicar-layout,.perfil-layout{padding:16px}
+  .perfil-header{flex-direction:column;text-align:center}
+  .auth-box{padding:24px}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr}
+  .hero-ctas{flex-direction:column}
+  .btn-lg{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ NAV ════════════════ -->
+<nav class="nav" id="navbar">
+  <div class="nav-logo" onclick="ir('landing')">
+    <span style="font-size:1.4rem">🌱</span> Doar é <span>Cuidar</span>
+  </div>
+  <div class="nav-links" id="nav-links">
+    <button class="nav-link" onclick="ir('feed')">Explorar</button>
+    <button class="nav-link" onclick="ir('painel')" id="nav-painel" style="display:none">Meus Itens</button>
+    <button class="nav-link" onclick="ir('dashboard')" id="nav-dash" style="display:none">Dashboard</button>
+    <div id="nav-guest" style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="mostrarAuth('login')">Entrar</button>
+      <button class="btn btn-primary btn-sm" onclick="mostrarAuth('cadastro')">Cadastrar</button>
+    </div>
+    <div id="nav-user" style="display:none;align-items:center;gap:8px">
+      <button class="btn btn-secondary btn-sm" onclick="ir('publicar')">+ Publicar Doação</button>
+      <button class="nav-avatar" onclick="ir('perfil')" title="Meu perfil" id="nav-avatar-btn">AM</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════════════ TELA: LANDING ════════════════ -->
+<div id="tela-landing" class="tela ativa">
+  <section class="hero">
+    <div>
+      <div class="hero-eyebrow">🌱 Plataforma de doações online</div>
+      <h1 class="hero-title">Doe com propósito,<br>receba com <em>dignidade</em></h1>
+      <p class="hero-subtitle">Conectamos quem quer ajudar com quem precisa. Cadastre itens para doação ou encontre o que você precisa de forma organizada, segura e transparente.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-primary btn-lg" onclick="mostrarAuth('cadastro')">Começar agora — é grátis</button>
+        <button class="btn btn-secondary btn-lg" onclick="ir('feed')">Ver doações disponíveis</button>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-num">1.240</div>
+          <div class="hero-stat-label">Itens disponíveis</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">3.890</div>
+          <div class="hero-stat-label">Doações realizadas</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">8.400</div>
+          <div class="hero-stat-label">Usuários cadastrados</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="hero-card-img">🛋️</div>
+        <div class="flex align-center justify-between mb8">
+          <div>
+            <div class="fw700" style="font-family:var(--fonte)">Sofá 3 lugares</div>
+            <div class="fs13 muted">Serra — ES</div>
+          </div>
+          <div class="hero-tag">🟢 Disponível</div>
+        </div>
+        <div class="flex gap8">
+          <span class="tag">Móveis</span>
+          <span class="tag">Usado</span>
+          <span class="tag">Ótimo estado</span>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--cinza1);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:.8rem;color:var(--cinza3)">👥 4 candidatos</div>
+          <button class="btn btn-primary btn-sm" onclick="mostrarAuth('cadastro')">Tenho interesse</button>
+        </div>
+      </div>
+      <div class="float-card float-card-1">
+        <div class="float-icon" style="background:#E8F5E9">✅</div>
+        <div>
+          <div class="fw600 fs13">Doação concluída!</div>
+          <div class="fs12 muted">Geladeira · hoje</div>
+        </div>
+      </div>
+      <div class="float-card float-card-2">
+        <div class="float-icon" style="background:var(--verde3)">🔔</div>
+        <div>
+          <div class="fw600 fs13">Novo interesse recebido</div>
+          <div class="fs12 muted">Bicicleta infantil</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="como-funciona">
+    <div class="section-inner">
+      <h2 class="section-title">Como funciona?</h2>
+      <p class="section-sub">Em três passos simples, sua doação chega a quem realmente precisa.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-title">Cadastre seu item</div>
+          <p class="step-desc">Publique o que deseja doar com fotos, descrição e categoria. Leva menos de 2 minutos.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-title">Receba candidaturas</div>
+          <p class="step-desc">Interessados enviam uma justificativa explicando por que gostariam de receber o item.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-title">Escolha o beneficiário</div>
+          <p class="step-desc">Você lê as justificativas e escolhe quem receberá a doação. Simples, humano e transparente.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="recentes">
+    <div class="flex align-center justify-between mb8">
+      <div>
+        <h2 style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:var(--preto)">Doações recentes</h2>
+        <p class="muted fs14 mt4">Itens publicados nos últimos dias</p>
+      </div>
+      <button class="btn btn-secondary" onclick="ir('feed')">Ver todos</button>
+    </div>
+    <div class="cards-grid" id="cards-landing"></div>
+  </section>
+
+  <section style="background:var(--verde);padding:80px 24px;text-align:center">
+    <div style="max-width:520px;margin:0 auto">
+      <div style="font-size:2.4rem;margin-bottom:16px">🌱</div>
+      <h2 style="font-family:var(--fonte);font-size:1.867rem;font-weight:800;color:#fff;margin-bottom:12px">Pronto para fazer a diferença?</h2>
+      <p style="color:rgba(255,255,255,.8);font-size:1.067rem;line-height:1.6;margin-bottom:28px">Junte-se a milhares de pessoas que já transformaram objetos em sorrisos.</p>
+      <button class="btn btn-lg" style="background:#fff;color:var(--verde);font-weight:700" onclick="mostrarAuth('cadastro')">Criar minha conta grátis</button>
+    </div>
+  </section>
+
+  <footer style="background:var(--preto);padding:40px 24px;text-align:center">
+    <div style="font-family:var(--fonte);font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:8px">🌱 Doar é Cuidar</div>
+    <div style="color:rgba(255,255,255,.4);font-size:.833rem">Projeto Integrador III — FAESA, 2026 · Anderson Moreira, Bruna Soares, Mayara Hafez</div>
+  </footer>
+</div>
+
+<!-- ════════════════ TELA: AUTH ════════════════ -->
+<div id="tela-auth" class="tela">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">🌱</div>
+      <div style="font-family:var(--fonte);font-weight:800;font-size:1.2rem;color:var(--preto)">Doar é Cuidar</div>
+      <div class="muted fs13 mt4">Sua plataforma de doações</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" id="tab-cadastro" onclick="switchAuthTab('cadastro')">Cadastrar</button>
+    </div>
+    <div id="form-login">
+      <div class="form-stack">
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" class="input" placeholder="seu@email.com" id="login-email">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" class="input" placeholder="••••••••" id="login-senha">
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:4px" onclick="fazerLogin()">Entrar na minha conta</button>
+      </div>
+      <div class="divider" style="margin-top:20px">ou</div>
+      <div style="margin-top:16px;text-align:center;font-size:.867rem;color:var(--cinza4)">
+        Não tem conta? <span style="color:var(--verde);cursor:pointer;font-weight:600" onclick="switchAuthTab('cadastro')">Cadastre-se grátis</span>
+      </div>
+    </div>
+    <div id="form-cadastro" style="display:none">
+      <div class="form-stack">
+        <div class="form-group">
+          <label>Nome completo</label>
+          <input type="text" class="input" placeholder="Seu nome" id="cad-nome">
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" class="input" placeholder="seu@email.com" id="cad-email">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" class="input" placeholder="Mínimo 8 caracteres" id="cad-senha">
+        </div>
+        <div class="form-group">
+          <label>Tipo de conta</label>
+          <select class="input" id="cad-tipo">
+            <option value="ambos">Quero doar e receber</option>
+            <option value="doador">Principalmente doador</option>
+            <option value="receptor">Principalmente receptor</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:4px" onclick="fazerCadastro()">Criar minha conta</button>
+      </div>
+      <div style="margin-top:16px;text-align:center;font-size:.867rem;color:var(--cinza4)">
+        Já tem conta? <span style="color:var(--verde);cursor:pointer;font-weight:600" onclick="switchAuthTab('login')">Entrar</span>
+      </div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn btn-ghost btn-full btn-sm" onclick="ir('landing')" style="color:var(--cinza4)">← Voltar ao início</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ TELA: FEED ════════════════ -->
+<div id="tela-feed" class="tela">
+  <div class="feed-layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">Filtros</div>
+      <div class="filter-group">
+        <span class="filter-label">Categoria</span>
+        <div class="filter-options" id="filter-cats">
+          <label class="filter-opt active"><input type="checkbox" id="cat-todas" checked onchange="toggleTodas(this)"> Todas</label>
+          <label class="filter-opt"><input type="checkbox" onchange="filtrarCat(this)"> 🛋️ Móveis</label>
+          <label class="filter-opt"><input type="checkbox" onchange="filtrarCat(this)"> 👗 Roupas</label>
+          <label class="filter-opt"><input type="checkbox" onchange="filtrarCat(this)"> 🏠 Eletrodomésticos</label>
+          <label class="filter-opt"><input type="checkbox" onchange="filtrarCat(this)"> 🧸 Brinquedos</label>
+          <label class="filter-opt"><input type="checkbox" onchange="filtrarCat(this)"> 📚 Livros</label>
+          <label class="filter-opt"><input type="checkbox" onchange="filtrarCat(this)"> 🔧 Outros</label>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Estado de conservação</span>
+        <div class="filter-options" id="filter-estados">
+          <label class="filter-opt active"><input type="checkbox" checked onchange="filtrarFeed()"> ✨ Novo</label>
+          <label class="filter-opt active"><input type="checkbox" checked onchange="filtrarFeed()"> 👍 Usado — ótimo</label>
+          <label class="filter-opt active"><input type="checkbox" checked onchange="filtrarFeed()"> 👌 Usado — bom</label>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Localização</span>
+        <select class="input" id="filter-cidade" style="font-size:.833rem" onchange="filtrarFeed()">
+          <option value="">Todas as cidades</option>
+          <option value="Vitória">Vitória</option>
+          <option value="Vila Velha">Vila Velha</option>
+          <option value="Serra">Serra</option>
+          <option value="Cariacica">Cariacica</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost btn-full btn-sm" style="color:var(--cinza4);margin-top:8px" onclick="limparFiltros()">Limpar filtros</button>
+    </aside>
+    <main>
+      <div class="search-bar">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Buscar itens para doação..." oninput="filtrarFeed()" id="search-input">
+      </div>
+      <div class="feed-header">
+        <div>
+          <div class="feed-title">Doações disponíveis</div>
+          <div class="feed-count muted" id="feed-count">Carregando...</div>
+        </div>
+        <select class="sort-select" onchange="filtrarFeed()">
+          <option>Mais recentes</option>
+          <option>Mais candidatos</option>
+          <option>A–Z</option>
+        </select>
+      </div>
+      <div class="cards-grid" id="cards-feed"></div>
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════ TELA: DETALHE ════════════════ -->
+<div id="tela-detalhe" class="tela">
+  <div style="max-width:1100px;margin:0 auto;padding:24px">
+    <button class="btn btn-ghost btn-sm" onclick="voltarFeed()" style="margin-bottom:16px;color:var(--cinza4)">
+      ← Voltar
+    </button>
+  </div>
+  <div class="detalhe-layout">
+    <div>
+      <div class="detalhe-img" id="det-img-main">🛋️</div>
+      <div class="detalhe-thumbs" id="det-thumbs"></div>
+      <div style="margin-top:28px">
+        <h2 style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--preto);margin-bottom:8px" id="det-title"></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" id="det-tags"></div>
+        <p style="color:var(--texto2);line-height:1.7;font-size:.967rem" id="det-desc"></p>
+        <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--cinza2)">
+          <div style="font-family:var(--fonte);font-weight:700;font-size:1rem;margin-bottom:12px">Detalhes do item</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="det-details"></div>
+        </div>
+      </div>
+    </div>
+    <div class="detalhe-side">
+      <div class="doador-mini" id="det-doador"></div>
+      <div style="margin-bottom:16px" id="det-status-wrap"></div>
+      <div style="text-align:center;padding:16px;background:var(--cinza1);border-radius:var(--r3);margin-bottom:16px" id="det-cands-wrap"></div>
+      <div id="det-btn-wrap"></div>
+      <div style="margin-top:16px;padding:12px;background:var(--verde3);border-radius:var(--r3);font-size:.8rem;color:var(--verde);line-height:1.5">
+        🔒 Suas informações de contato são compartilhadas apenas após seleção pelo doador.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ TELA: PUBLICAR ════════════════ -->
+<div id="tela-publicar" class="tela">
+  <div class="publicar-layout">
+    <div style="margin-bottom:8px">
+      <h1 style="font-family:var(--fonte);font-size:1.867rem;font-weight:800;color:var(--preto)">Publicar doação</h1>
+      <p class="muted fs14 mt4">Preencha as informações do item que deseja doar</p>
+    </div>
+
+    <div style="display:flex;align-items:center;margin:28px 0 6px">
+      <div class="step-dot" id="sdot1">1</div>
+      <div class="step-line" id="sline1"></div>
+      <div class="step-dot pending" id="sdot2">2</div>
+      <div class="step-line" id="sline2"></div>
+      <div class="step-dot pending" id="sdot3">3</div>
+    </div>
+    <div class="steps-labels">
+      <span class="fs12 fw600" id="slabel1" style="color:var(--verde)">Dados do item</span>
+      <span class="fs12 fw600 muted" id="slabel2">Imagens</span>
+      <span class="fs12 fw600 muted" id="slabel3">Revisão</span>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="pub-step1">
+      <div class="form-stack">
+        <div class="form-group">
+          <label>Nome do item *</label>
+          <input type="text" class="input" placeholder="Ex: Sofá 3 lugares bege" id="pub-nome">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group">
+            <label>Categoria *</label>
+            <select class="input" id="pub-cat">
+              <option value="">Selecione...</option>
+              <option>🛋️ Móveis</option>
+              <option>👗 Roupas</option>
+              <option>🏠 Eletrodomésticos</option>
+              <option>🧸 Brinquedos</option>
+              <option>📚 Livros</option>
+              <option>🔧 Outros</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estado de conservação *</label>
+            <select class="input" id="pub-estado">
+              <option value="">Selecione...</option>
+              <option>✨ Novo (sem uso)</option>
+              <option>👍 Usado — ótimo estado</option>
+              <option>👌 Usado — bom estado</option>
+              <option>⚠️ Precisa de reparo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descrição *</label>
+          <textarea class="input" rows="4" placeholder="Descreva o item com detalhes: dimensões, cor, material, motivo da doação..." id="pub-desc"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group">
+            <label>Cidade</label>
+            <input type="text" class="input" placeholder="Ex: Vila Velha" id="pub-cidade">
+          </div>
+          <div class="form-group">
+            <label>CEP</label>
+            <input type="text" class="input" placeholder="00000-000" id="pub-cep">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="pubStep(2)" style="margin-top:8px">Continuar → Adicionar fotos</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="pub-step2" style="display:none">
+      <div class="upload-area" onclick="simularUpload()">
+        <div style="font-size:2.4rem;margin-bottom:12px">📷</div>
+        <div class="fw600 fs16">Clique para adicionar fotos</div>
+        <div class="muted fs13 mt4">Adicione até 5 imagens do item (PNG, JPG)</div>
+      </div>
+      <div class="upload-previews mt16" id="upload-previews"></div>
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button class="btn btn-secondary" onclick="pubStep(1)">← Voltar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="pubStep(3)">Continuar → Revisar</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="pub-step3" style="display:none">
+      <div style="background:var(--branco);border:1px solid var(--cinza2);border-radius:var(--r);padding:24px;margin-bottom:20px" id="pub-revisao"></div>
+      <div style="background:var(--verde3);border-radius:var(--r3);padding:16px;margin-bottom:20px;font-size:.867rem;color:var(--verde);line-height:1.5">
+        ✅ Ao publicar, você concorda que o item ficará visível no feed público e que receberá candidaturas de interessados.
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-secondary" onclick="pubStep(2)">← Voltar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="publicarItem()">🌱 Publicar doação</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ TELA: PAINEL DOADOR ════════════════ -->
+<div id="tela-painel" class="tela">
+  <div class="painel-layout">
+    <div class="painel-header">
+      <div>
+        <h1 style="font-family:var(--fonte);font-size:1.867rem;font-weight:800;color:var(--preto)">Meus itens</h1>
+        <p class="muted fs14 mt4" id="painel-count">Gerencie suas doações publicadas</p>
+      </div>
+      <button class="btn btn-primary" onclick="ir('publicar')">+ Nova doação</button>
+    </div>
+    <!-- Stats mini -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px">
+      <div style="background:var(--branco);border-radius:var(--r3);border:1px solid var(--cinza2);padding:16px;text-align:center">
+        <div style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:var(--verde)" id="stat-total">0</div>
+        <div class="fs12 muted mt4">Total publicados</div>
+      </div>
+      <div style="background:var(--branco);border-radius:var(--r3);border:1px solid var(--cinza2);padding:16px;text-align:center">
+        <div style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:var(--terra)" id="stat-cands">0</div>
+        <div class="fs12 muted mt4">Candidaturas recebidas</div>
+      </div>
+      <div style="background:var(--branco);border-radius:var(--r3);border:1px solid var(--cinza2);padding:16px;text-align:center">
+        <div style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:#2E7D32" id="stat-conc">0</div>
+        <div class="fs12 muted mt4">Doações concluídas</div>
+      </div>
+    </div>
+    <div class="meus-items" id="meus-items-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════ TELA: DASHBOARD ════════════════ -->
+<div id="tela-dashboard" class="tela">
+  <div class="dash-layout">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+      <div>
+        <h1 style="font-family:var(--fonte);font-size:1.867rem;font-weight:800;color:var(--preto)">Dashboard</h1>
+        <p class="muted fs14 mt4">Visão geral da plataforma · Atualizado agora</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="toast('📊 Relatório PDF gerado com sucesso!','verde')">📥 Exportar relatório</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:var(--verde3)">👥</div>
+        <div class="kpi-num">8.432</div>
+        <div class="kpi-label">Usuários cadastrados</div>
+        <div class="kpi-change kpi-up">↑ 12% este mês</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#E3F2FD">📦</div>
+        <div class="kpi-num">1.240</div>
+        <div class="kpi-label">Itens disponíveis</div>
+        <div class="kpi-change kpi-up">↑ 8% este mês</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#E8F5E9">✅</div>
+        <div class="kpi-num">3.891</div>
+        <div class="kpi-label">Doações concluídas</div>
+        <div class="kpi-change kpi-up">↑ 23% este mês</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:var(--terra2)">📈</div>
+        <div class="kpi-num">67,4%</div>
+        <div class="kpi-label">Taxa de conversão</div>
+        <div class="kpi-change kpi-up">↑ 5% este mês</div>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Doações concluídas por mês</div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Itens por categoria</div>
+        <div class="donut-wrap">
+          <svg width="120" height="120" viewBox="0 0 120 120" id="donut-svg"></svg>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="table-card">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--cinza1)">
+          <div class="chart-title" style="margin-bottom:0">Itens mais procurados</div>
+        </div>
+        <table class="dash-table">
+          <thead><tr><th>Item</th><th>Categoria</th><th>Candidatos</th></tr></thead>
+          <tbody>
+            <tr><td>Geladeira Consul 340L</td><td><span class="tag">Eletrodomésticos</span></td><td><span class="cands-badge">18</span></td></tr>
+            <tr><td>Sofá 3 lugares</td><td><span class="tag">Móveis</span></td><td><span class="cands-badge">14</span></td></tr>
+            <tr><td>Kit roupas infantis</td><td><span class="tag">Roupas</span></td><td><span class="cands-badge">11</span></td></tr>
+            <tr><td>Bicicleta adulto</td><td><span class="tag">Outros</span></td><td><span class="cands-badge">9</span></td></tr>
+            <tr><td>Micro-ondas 30L</td><td><span class="tag">Eletrodomésticos</span></td><td><span class="cands-badge">8</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-card">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--cinza1)">
+          <div class="chart-title" style="margin-bottom:0">Atividade recente</div>
+        </div>
+        <table class="dash-table">
+          <thead><tr><th>Evento</th><th>Quando</th></tr></thead>
+          <tbody>
+            <tr><td>✅ Doação concluída — Sofá</td><td class="muted">há 2h</td></tr>
+            <tr><td>📦 Novo item — Geladeira</td><td class="muted">há 3h</td></tr>
+            <tr><td>👤 Novo usuário cadastrado</td><td class="muted">há 5h</td></tr>
+            <tr><td>💬 12 novas candidaturas</td><td class="muted">hoje</td></tr>
+            <tr><td>✅ Doação concluída — Bike</td><td class="muted">ontem</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ TELA: PERFIL ════════════════ -->
+<div id="tela-perfil" class="tela">
+  <div class="perfil-layout">
+    <div class="perfil-header">
+      <div class="avatar-lg" id="perfil-avatar">AM</div>
+      <div>
+        <h1 style="font-family:var(--fonte);font-size:1.467rem;font-weight:800;color:var(--preto)" id="perfil-nome">Anderson Moreira</h1>
+        <div class="muted fs13 mt4" id="perfil-email">anderson@email.com</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <span class="badge badge-verde">✅ E-mail verificado</span>
+          <span class="badge badge-cinza">👤 Doador / Receptor</span>
+        </div>
+      </div>
+      <div style="margin-left:auto;display:flex;flex-direction:column;gap:8px;text-align:right">
+        <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--verde)">5</div>
+        <div class="fs12 muted">Doações realizadas</div>
+        <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--terra)">2</div>
+        <div class="fs12 muted">Itens recebidos</div>
+      </div>
+    </div>
+    <div class="perfil-tabs">
+      <button class="perfil-tab active" onclick="perfilTab('doacoes',this)">Minhas doações</button>
+      <button class="perfil-tab" onclick="perfilTab('candidaturas',this)">Candidaturas</button>
+      <button class="perfil-tab" onclick="perfilTab('config',this)">Configurações</button>
+    </div>
+    <div id="perfil-content"></div>
+  </div>
+</div>
+
+<!-- ════════════════ MODAL ════════════════ -->
+<div id="modal-backdrop" class="modal-backdrop hidden" onclick="fecharModal(event)">
+  <div class="modal" id="modal-content" onclick="event.stopPropagation()"></div>
+</div>
+
+<!-- ════════════════ JS ════════════════ -->
+<script>
+// ── DADOS ──────────────────────────────────────────────
+const ITENS = [
+  {id:1,emoji:'🛋️',titulo:'Sofá 3 lugares bege',cat:'Móveis',estado:'Usado — ótimo estado',desc:'Sofá em excelente estado, tecido bege, sem manchas. Compramos um novo e queremos que esse vá para uma família que precise. Dimensões: 2,20m x 90cm x 85cm.',cidade:'Serra',candidatos:4,data:'2 dias atrás',doador:{nome:'Maria Silva',sigla:'MS'},emojis:['🛋️','🛋️','🏠'],tags:['Ótimo estado','Com almofadas']},
+  {id:2,emoji:'❄️',titulo:'Geladeira Consul 340L',cat:'Eletrodomésticos',estado:'Usado — bom estado',desc:'Geladeira em funcionamento perfeito, gela muito bem. Fazendo troca por modelo maior. Retirada na residência.',cidade:'Vila Velha',candidatos:18,data:'1 dia atrás',doador:{nome:'Carlos Pereira',sigla:'CP'},emojis:['❄️','🔌'],tags:['Funcionando','Retirada local']},
+  {id:3,emoji:'📚',titulo:'Kit 30 livros didáticos Ensino Médio',cat:'Livros',estado:'Usado — bom estado',desc:'Coleção completa de livros do ensino médio: Matemática, Português, História, Geografia, Biologia e Química. Meu filho se formou e não precisa mais.',cidade:'Vitória',candidatos:7,data:'3 dias atrás',doador:{nome:'Ana Oliveira',sigla:'AO'},emojis:['📚','📖'],tags:['30 volumes','EM completo']},
+  {id:4,emoji:'🚲',titulo:'Bicicleta adulto aro 26',cat:'Outros',estado:'Usado — bom estado',desc:'Bicicleta em bom estado, precisa de um ajuste no freio traseiro. Quadro de alumínio, 21 marchas. Cor preta.',cidade:'Cariacica',candidatos:9,data:'hoje',doador:{nome:'Roberto Lima',sigla:'RL'},emojis:['🚲','🔧'],tags:['21 marchas','Precisa ajuste freio']},
+  {id:5,emoji:'👗',titulo:'Kit roupas infantis (3–8 anos)',cat:'Roupas',estado:'Usado — ótimo estado',desc:'Aproximadamente 40 peças entre camisetas, calças, shorts e vestidos. Todos lavados e passados, em ótimo estado. Minha filha cresceu.',cidade:'Serra',candidatos:11,data:'4 dias atrás',doador:{nome:'Patricia Souza',sigla:'PS'},emojis:['👗','👕','👚'],tags:['~40 peças','Lavados e passados']},
+  {id:6,emoji:'🖥️',titulo:'Computador desktop completo',cat:'Eletrodomésticos',estado:'Usado — bom estado',desc:'CPU + monitor 19" + teclado + mouse. Processador Intel i5, 8GB RAM, HD 500GB. Windows 10 instalado. Bom para estudos e trabalho.',cidade:'Vitória',candidatos:22,data:'5 dias atrás',doador:{nome:'Fernando Costa',sigla:'FC'},emojis:['🖥️','⌨️','🖱️'],tags:['i5 / 8GB','Win 10 original']},
+  {id:7,emoji:'🧸',titulo:'Caixa de brinquedos variados',cat:'Brinquedos',estado:'Usado — ótimo estado',desc:'Uma caixa com mais de 50 brinquedos: carrinhos, bonecas, quebra-cabeças, jogos de tabuleiro. Todos higienizados.',cidade:'Vila Velha',candidatos:6,data:'hoje',doador:{nome:'Juliana Martins',sigla:'JM'},emojis:['🧸','🎮','🎲'],tags:['+50 itens','Higienizados']},
+  {id:8,emoji:'🍳',titulo:'Kit panelas inox 7 peças',cat:'Outros',estado:'Novo (sem uso)',desc:'Kit de panelas Tramontina inox, nunca usado, recebemos de presente e já temos um conjunto. Completo, com tampa.',cidade:'Serra',candidatos:13,data:'1 dia atrás',doador:{nome:'Camila Ramos',sigla:'CR'},emojis:['🍳','🥘'],tags:['Tramontina','7 peças','Nunca usado']},
+];
+
+const CANDIDATURAS_MOCK = [
+  {nome:'Josefa Andrade',sigla:'JA',tempo:'há 2h',just:'Sou mãe solo de 3 filhos e estamos sem sofá há mais de um ano. Minha família se sentaria com muito mais conforto e dignidade.'},
+  {nome:'Pedro Henrique',sigla:'PH',tempo:'há 5h',just:'Acabei de sair do aluguel e meu apartamento está todo vazio. Estou começando do zero com muita dificuldade financeira.'},
+  {nome:'Rosa Batista',sigla:'RB',tempo:'há 1 dia',just:'Sou professora aposentada e meu sofá velho quebrou. Estou sentada numa cadeira na sala há meses.'},
+  {nome:'Marcos Vieira',sigla:'MV',tempo:'há 2 dias',just:'Minha família veio para Vitória fugindo das enchentes e perdemos tudo. Qualquer ajuda é muito bem-vinda.'},
+];
+
+let usuario = null;
+let itemAtual = null;
+let telaAnterior = 'feed';
+let uploadCount = 0;
+let meusPubs = [];
+
+// ── NAVEGAÇÃO ──────────────────────────────────────────
+function ir(tela){
+  document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));
+  const el = document.getElementById('tela-'+tela);
+  if(el) el.classList.add('ativa');
+  window.scrollTo(0,0);
+  if(tela==='feed') renderFeed();
+  if(tela==='landing') renderLanding();
+  if(tela==='painel') renderPainel();
+  if(tela==='dashboard') renderDash();
+  if(tela==='perfil') renderPerfil();
+}
+
+function voltarFeed(){ir(telaAnterior||'feed')}
+
+// ── AUTH ───────────────────────────────────────────────
+function mostrarAuth(tab='login'){
+  ir('auth');
+  switchAuthTab(tab);
+}
+
+function switchAuthTab(tab){
+  document.getElementById('form-login').style.display = tab==='login'?'block':'none';
+  document.getElementById('form-cadastro').style.display = tab==='cadastro'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-cadastro').classList.toggle('active', tab==='cadastro');
+}
+
+function fazerLogin(){
+  const email = document.getElementById('login-email').value||'usuario@email.com';
+  logarUsuario({nome:'Anderson Moreira',email,sigla:'AM'});
+}
+
+function fazerCadastro(){
+  const nome = document.getElementById('cad-nome').value||'Novo Usuário';
+  const email = document.getElementById('cad-email').value||'usuario@email.com';
+  const sigla = nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  logarUsuario({nome,email,sigla});
+}
+
+function logarUsuario(u){
+  usuario = u;
+  meusPubs = ITENS.slice(0,2).map(i=>({...i}));
+  document.getElementById('nav-guest').style.display='none';
+  document.getElementById('nav-user').style.display='flex';
+  document.getElementById('nav-painel').style.display='';
+  document.getElementById('nav-dash').style.display='';
+  document.getElementById('nav-avatar-btn').textContent = u.sigla;
+  toast('👋 Bem-vindo(a), '+u.nome.split(' ')[0]+'!','verde');
+  ir('feed');
+}
+
+// ── RENDER LANDING ─────────────────────────────────────
+function renderLanding(){
+  const c = document.getElementById('cards-landing');
+  c.innerHTML = ITENS.slice(0,4).map(itemCardHTML).join('');
+}
+
+// ── RENDER FEED ────────────────────────────────────────
+function renderFeed(){
+  filtrarFeed();
+}
+
+function toggleTodas(cb){
+  // Se marcou "Todas", desmarca as específicas
+  if(cb.checked){
+    document.querySelectorAll('#filter-cats .filter-opt input:not(#cat-todas)').forEach(c=>{ c.checked=false; c.parentElement.classList.remove('active'); });
+  }
+  filtrarFeed();
+}
+
+function filtrarCat(cb){
+  // Ao marcar uma específica, desmarca "Todas"
+  const todas = document.getElementById('cat-todas');
+  if(todas) { todas.checked=false; todas.parentElement.classList.remove('active'); }
+  // Se nenhuma específica marcada, volta a marcar "Todas"
+  const alguma = [...document.querySelectorAll('#filter-cats .filter-opt input:not(#cat-todas)')].some(c=>c.checked);
+  if(!alguma && todas){ todas.checked=true; todas.parentElement.classList.add('active'); }
+  filtrarFeed();
+}
+
+
+const MAP_CAT = {
+  'Móveis':'Móveis','Roupas':'Roupas',
+  'Eletrodomésticos':'Eletrodomésticos','Brinquedos':'Brinquedos',
+  'Livros':'Livros','Outros':'Outros'
+};
+const MAP_ESTADO = {
+  'Novo':'Novo','Usado — ótimo':'ótimo','Usado — bom':'bom'
+};
+
+function filtrarFeed(){
+  const q = (document.getElementById('search-input')||{value:''}).value.toLowerCase().trim();
+
+  // ── categorias selecionadas ──
+  const catOpts = document.querySelectorAll('#filter-cats .filter-opt input[type=checkbox]');
+  const todaCheck = document.getElementById('cat-todas');
+  const catsSel = [];
+  catOpts.forEach((cb)=>{
+    if(cb.id==='cat-todas') return;
+    if(cb.checked){
+      const txt = cb.parentElement.textContent.trim();
+      const key = Object.keys(MAP_CAT).find(k=>txt.includes(k));
+      if(key) catsSel.push(MAP_CAT[key]);
+    }
+  });
+  const todasCats = (todaCheck && todaCheck.checked) || catsSel.length===0;
+
+  // ── estados selecionados ──
+  const estadoOpts = document.querySelectorAll('#filter-estados .filter-opt input[type=checkbox]');
+  const estadosSel = [];
+  estadoOpts.forEach(cb=>{
+    if(cb.checked){
+      const txt = cb.parentElement.textContent.trim();
+      const key = Object.keys(MAP_ESTADO).find(k=>txt.includes(k));
+      if(key) estadosSel.push(MAP_ESTADO[key]);
+    }
+  });
+  const todosEstados = !estadosSel.length;
+
+  // ── ordenação ──
+  const sortVal = (document.querySelector('.sort-select')||{value:''}).value;
+
+  // ── cidade ──
+  const cidadeSel = (document.getElementById('filter-cidade')||{value:''}).value;
+
+  let filtrados = ITENS.filter(i=>{
+    // busca textual
+    if(q && !i.titulo.toLowerCase().includes(q) && !i.cat.toLowerCase().includes(q) && !i.desc.toLowerCase().includes(q)) return false;
+    // categoria
+    if(!todasCats && catsSel.length && !catsSel.includes(i.cat)) return false;
+    // estado de conservação
+    if(!todosEstados && estadosSel.length && !estadosSel.some(e=>i.estado.toLowerCase().includes(e.toLowerCase()))) return false;
+    // cidade
+    if(cidadeSel && i.cidade !== cidadeSel) return false;
+    return true;
+  });
+
+  // ordenar
+  if(sortVal==='Mais candidatos') filtrados = [...filtrados].sort((a,b)=>b.candidatos-a.candidatos);
+  else if(sortVal==='A–Z') filtrados = [...filtrados].sort((a,b)=>a.titulo.localeCompare(b.titulo));
+  // "Mais recentes" = ordem original (sem sort)
+
+  const c = document.getElementById('cards-feed');
+  if(c){
+    c.innerHTML = filtrados.length
+      ? filtrados.map(itemCardHTML).join('')
+      : `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--cinza3)">
+           <div style="font-size:2.4rem;margin-bottom:12px">🔍</div>
+           <div class="fw600 fs16" style="color:var(--cinza4)">Nenhum item encontrado</div>
+           <div class="fs13 mt8">Tente outros filtros ou termos de busca</div>
+         </div>`;
+    document.getElementById('feed-count').textContent = filtrados.length+' item(ns) encontrado(s)';
+  }
+
+  // sincronizar estilo active nos labels de categoria
+  catOpts.forEach((cb,i)=>{
+    cb.parentElement.classList.toggle('active', cb.checked);
+  });
+  estadoOpts.forEach(cb=>{
+    cb.parentElement.classList.toggle('active', cb.checked);
+  });
+}
+
+function limparFiltros(){
+  // reset busca
+  const s = document.getElementById('search-input');
+  if(s) s.value='';
+  // reset checkboxes categoria: marca "Todas", desmarca o resto
+  const catOpts = document.querySelectorAll('#filter-cats .filter-opt input[type=checkbox]');
+  catOpts.forEach(cb=>{ cb.checked = (cb.id==='cat-todas'); cb.parentElement.classList.toggle('active', cb.id==='cat-todas'); });
+  // reset checkboxes estado: marca todos
+  document.querySelectorAll('#filter-estados .filter-opt input[type=checkbox]').forEach(cb=>{ cb.checked=true; });
+  const cidade = document.getElementById('filter-cidade');
+  if(cidade) cidade.value='';
+  // reset sort
+  const sort = document.querySelector('.sort-select');
+  if(sort) sort.selectedIndex=0;
+  filtrarFeed();
+  toast('Filtros limpos','verde');
+}
+
+function itemCardHTML(item){
+  return `<div class="item-card" onclick="abrirItem(${item.id})">
+    <div class="item-card-img">${item.emoji}</div>
+    <div class="item-card-body">
+      <div class="item-card-cat">${item.cat}</div>
+      <div class="item-card-title">${item.titulo}</div>
+      <div class="item-card-desc">${item.desc}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        ${item.tags.map(t=>`<span class="tag">${t}</span>`).join('')}
+      </div>
+      <div class="item-card-footer">
+        <div class="item-card-user">
+          <div class="avatar-xs">${item.doador.sigla}</div>
+          ${item.doador.nome.split(' ')[0]} · ${item.cidade}
+        </div>
+        <div class="item-card-cands">👥 ${item.candidatos}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── DETALHE ITEM ───────────────────────────────────────
+function abrirItem(id){
+  itemAtual = ITENS.find(i=>i.id===id);
+  if(!itemAtual) return;
+  telaAnterior = document.querySelector('.tela.ativa')?.id.replace('tela-','')||'feed';
+
+  const i = itemAtual;
+  document.getElementById('det-img-main').textContent = i.emoji;
+  document.getElementById('det-title').textContent = i.titulo;
+  document.getElementById('det-tags').innerHTML =
+    `<span class="badge badge-verde">${i.cat}</span><span class="badge badge-cinza">${i.estado}</span><span class="badge badge-cinza">📍 ${i.cidade}</span>`;
+  document.getElementById('det-desc').textContent = i.desc;
+  document.getElementById('det-thumbs').innerHTML = i.emojis.map((e,idx)=>
+    `<div class="thumb${idx===0?' active':''}">${e}</div>`).join('');
+  document.getElementById('det-details').innerHTML = `
+    <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+      <div class="fs12 muted mb4">Categoria</div><div class="fw600">${i.cat}</div>
+    </div>
+    <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+      <div class="fs12 muted mb4">Estado</div><div class="fw600">${i.estado}</div>
+    </div>
+    <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+      <div class="fs12 muted mb4">Publicado</div><div class="fw600">${i.data}</div>
+    </div>
+    <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+      <div class="fs12 muted mb4">Localização</div><div class="fw600">${i.cidade} — ES</div>
+    </div>`;
+  document.getElementById('det-doador').innerHTML = `
+    <div class="avatar-sm">${i.doador.sigla}</div>
+    <div><div class="fw600 fs14">${i.doador.nome}</div><div class="fs12 muted">Doador verificado ✅</div></div>`;
+  document.getElementById('det-status-wrap').innerHTML =
+    `<span class="status-pill status-disponivel">🟢 Disponível para doação</span>`;
+  document.getElementById('det-cands-wrap').innerHTML =
+    `<div class="fw800 fs28 verde" style="font-family:var(--fonte)">${i.candidatos}</div>
+     <div class="fs13 muted">candidatos interessados</div>`;
+
+  const isLogado = !!usuario;
+  const isDoador = isLogado && meusPubs.find(m=>m.id===id);
+  if(isDoador){
+    document.getElementById('det-btn-wrap').innerHTML =
+      `<button class="btn btn-primary btn-full" onclick="verCandidaturas(${id})">Ver candidaturas (${i.candidatos})</button>
+       <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="toast('Item encerrado','terra')">Encerrar anúncio</button>`;
+  } else if(isLogado){
+    document.getElementById('det-btn-wrap').innerHTML =
+      `<button class="btn btn-primary btn-full" onclick="abrirModalCandidatura()">💚 Quero este item</button>`;
+  } else {
+    document.getElementById('det-btn-wrap').innerHTML =
+      `<button class="btn btn-primary btn-full" onclick="mostrarAuth('cadastro')">Entrar para demonstrar interesse</button>`;
+  }
+  ir('detalhe');
+}
+
+// ── MODAL CANDIDATURA ──────────────────────────────────
+function abrirModalCandidatura(){
+  const i = itemAtual;
+  abrirModal(`
+    <div class="modal-header">
+      <div>
+        <div class="fw700 fs18" style="font-family:var(--fonte)">Manifestar interesse</div>
+        <div class="muted fs13 mt4">${i.titulo}</div>
+      </div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px;margin-bottom:20px;font-size:.867rem;color:var(--texto2);line-height:1.5">
+      💡 Escreva uma justificativa sincera. O doador lê todas antes de decidir quem receberá o item.
+    </div>
+    <div class="form-stack">
+      <div class="form-group">
+        <label>Por que você gostaria de receber este item? *</label>
+        <textarea class="input" rows="5" id="just-text" placeholder="Conte um pouco sobre sua situação e por que este item faria diferença na sua vida..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="enviarCandidatura()">Enviar minha candidatura</button>
+    </div>
+  `);
+}
+
+function enviarCandidatura(){
+  const txt = document.getElementById('just-text')?.value;
+  if(!txt||txt.length<20){toast('Escreva uma justificativa com pelo menos 20 caracteres','terra');return;}
+  itemAtual.candidatos++;
+  fecharModal();
+  abrirModal(`
+    <div class="success-modal">
+      <div class="success-icon">🎉</div>
+      <div class="fw800 fs20" style="font-family:var(--fonte);color:var(--preto)">Candidatura enviada!</div>
+      <p class="muted mt12 lh16">Sua justificativa foi registrada. O doador receberá uma notificação e entrará em contato caso você seja selecionado.</p>
+      <button class="btn btn-primary btn-full" style="margin-top:24px" onclick="fecharModal()">Entendi, obrigado!</button>
+    </div>
+  `);
+}
+
+// ── MODAL CANDIDATURAS (doador) ────────────────────────
+function verCandidaturas(id){
+  const item = ITENS.find(i=>i.id===id)||itemAtual;
+  abrirModal(`
+    <div class="modal-header">
+      <div>
+        <div class="fw700 fs18" style="font-family:var(--fonte)">Candidaturas recebidas</div>
+        <div class="muted fs13 mt4">${item.titulo} · ${CANDIDATURAS_MOCK.length} candidatos</div>
+      </div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    ${CANDIDATURAS_MOCK.map((c,idx)=>`
+      <div class="cand-item">
+        <div class="avatar-sm">${c.sigla}</div>
+        <div style="flex:1">
+          <div class="flex justify-between align-center">
+            <div class="fw600">${c.nome}</div>
+            <div class="fs12 muted">${c.tempo}</div>
+          </div>
+          <div class="cand-just">"${c.just}"</div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="selecionarBeneficiario('${c.nome}')">
+            ✅ Selecionar como beneficiário
+          </button>
+        </div>
+      </div>
+    `).join('')}
+  `);
+}
+
+function selecionarBeneficiario(nome){
+  fecharModal();
+  setTimeout(()=>{
+    abrirModal(`
+      <div class="success-modal">
+        <div class="success-icon">🎊</div>
+        <div class="fw800 fs20" style="font-family:var(--fonte);color:var(--preto)">Doação concluída!</div>
+        <p class="muted mt12 lh16"><strong>${nome}</strong> foi selecionado(a) como beneficiário. Uma notificação foi enviada para todos os candidatos.</p>
+        <div style="background:var(--verde3);border-radius:var(--r3);padding:14px;margin-top:16px;font-size:.867rem;color:var(--verde)">
+          📱 O contato de ${nome.split(' ')[0]} foi liberado no seu painel.
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:20px" onclick="fecharModal();ir('painel')">Ver meu painel</button>
+      </div>
+    `);
+  },200);
+}
+
+// ── PUBLICAR ───────────────────────────────────────────
+let pubStepAtual = 1;
+function pubStep(n){
+  document.getElementById('pub-step'+pubStepAtual).style.display='none';
+  pubStepAtual=n;
+  document.getElementById('pub-step'+n).style.display='block';
+  // atualizar dots
+  [1,2,3].forEach(i=>{
+    const dot = document.getElementById('sdot'+i);
+    const label = document.getElementById('slabel'+i);
+    if(i<n){dot.className='step-dot done';dot.textContent='✓';label.style.color='var(--verde)';}
+    else if(i===n){dot.className='step-dot current';dot.textContent=i;label.style.color='var(--verde)';}
+    else{dot.className='step-dot pending';dot.textContent=i;label.style.color='var(--cinza3)';}
+    if(i<3){const line=document.getElementById('sline'+i);if(line)line.className='step-line'+(i<n?' done':'');}
+  });
+  if(n===3) renderRevisao();
+}
+
+function simularUpload(){
+  if(uploadCount>=5){toast('Máximo de 5 imagens atingido','terra');return;}
+  const emojis=['🛋️','🏠','📷','🔍','✨'];
+  const prev = document.getElementById('upload-previews');
+  prev.innerHTML += `<div class="upload-preview">${emojis[uploadCount]}</div>`;
+  uploadCount++;
+  toast('Foto adicionada ('+uploadCount+'/5)','verde');
+}
+
+function renderRevisao(){
+  const nome = document.getElementById('pub-nome').value||'(sem título)';
+  const cat = document.getElementById('pub-cat').value||'(sem categoria)';
+  const estado = document.getElementById('pub-estado').value||'(sem estado)';
+  const desc = document.getElementById('pub-desc').value||'(sem descrição)';
+  const cidade = document.getElementById('pub-cidade').value||'(sem cidade)';
+  document.getElementById('pub-revisao').innerHTML = `
+    <div class="fw700 fs16 mb16" style="font-family:var(--fonte)">Resumo da publicação</div>
+    <div style="display:grid;gap:10px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Nome</span><span class="fw600 fs13">${nome}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Categoria</span><span class="fw600 fs13">${cat}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Estado</span><span class="fw600 fs13">${estado}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Cidade</span><span class="fw600 fs13">${cidade||'Não informada'}</span>
+      </div>
+      <div style="padding:8px 0">
+        <span class="muted fs13 mb4" style="display:block">Descrição</span>
+        <span class="fs13" style="color:var(--texto2)">${desc}</span>
+      </div>
+      ${uploadCount>0?`<div style="padding:8px 0"><span class="muted fs13">Fotos</span> <span class="fw600 fs13 verde">${uploadCount} imagem(ns) adicionada(s)</span></div>`:''}
+    </div>`;
+}
+
+function publicarItem(){
+  const nome = document.getElementById('pub-nome').value||'Novo item';
+  const cat = document.getElementById('pub-cat').value||'Outros';
+  const estado = document.getElementById('pub-estado').value||'Usado — bom estado';
+  const desc = document.getElementById('pub-desc').value||'Sem descrição.';
+  const cidade = document.getElementById('pub-cidade').value||'Vitória';
+  const novoItem = {
+    id: Date.now(), emoji:'📦', titulo:nome, cat:cat.replace(/.*?(\w)/,'$1').trim().split(' ').slice(0,2).join(' '),
+    estado, desc, cidade, candidatos:0, data:'agora',
+    doador:{nome:usuario?.nome||'Você',sigla:usuario?.sigla||'VC'},
+    emojis:['📦'], tags:[estado.split('—')[0].trim()]
+  };
+  ITENS.unshift(novoItem);
+  meusPubs.unshift(novoItem);
+  // reset form
+  pubStepAtual=1;uploadCount=0;
+  document.getElementById('upload-previews').innerHTML='';
+  ['pub-nome','pub-cat','pub-estado','pub-desc','pub-cidade','pub-cep'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  toast('🎉 Item publicado com sucesso!','verde');
+  ir('painel');
+}
+
+// ── PAINEL ────────────────────────────────────────────
+function renderPainel(){
+  const grid = document.getElementById('meus-items-grid');
+  if(!grid) return;
+  const totalCands = meusPubs.reduce((a,i)=>a+i.candidatos,0);
+  document.getElementById('stat-total').textContent = meusPubs.length;
+  document.getElementById('stat-cands').textContent = totalCands;
+  document.getElementById('stat-conc').textContent = 1;
+  document.getElementById('painel-count').textContent = meusPubs.length+' publicação(ões)';
+  grid.innerHTML = meusPubs.map(item=>`
+    <div class="meu-item">
+      <div class="meu-item-img">${item.emoji}</div>
+      <div class="meu-item-body">
+        <div class="fs12 muted mb4">${item.cat}</div>
+        <div class="fw700" style="font-family:var(--fonte);margin-bottom:6px">${item.titulo}</div>
+        <div class="fs13 muted">${item.cidade} · ${item.data}</div>
+      </div>
+      <div class="meu-item-footer">
+        <span class="cands-badge">👥 ${item.candidatos} candidatos</span>
+        <div style="display:flex;gap:6px">
+          ${item.candidatos>0?`<button class="btn btn-primary btn-sm" onclick="verCandidaturas(${item.id})">Ver</button>`:''}
+          <button class="btn btn-secondary btn-sm" onclick="abrirItem(${item.id})">Detalhes</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────
+function renderDash(){
+  // Bar chart
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const vals=[210,285,320,410,380,490,520,445,610,580,720,891];
+  const max=Math.max(...vals);
+  const bc=document.getElementById('bar-chart');
+  if(!bc)return;
+  bc.innerHTML=vals.map((v,i)=>`
+    <div class="bar-wrap">
+      <div class="bar-val">${v}</div>
+      <div class="bar" style="height:${Math.round(v/max*140)}px;background:${i===vals.length-1?'var(--verde)':'var(--verde4)'}"></div>
+      <div class="bar-label">${meses[i]}</div>
+    </div>`).join('');
+
+  // Donut
+  const cats=[{l:'Móveis',v:32,c:'#1B7A4A'},{l:'Roupas',v:28,c:'#25A065'},{l:'Eletro',v:21,c:'#7EC8A0'},{l:'Outros',v:19,c:'#C8E6C9'}];
+  let offset=0;const r=46;const circ=2*Math.PI*r;
+  const svg=document.getElementById('donut-svg');
+  if(!svg)return;
+  svg.innerHTML='<circle cx="60" cy="60" r="46" fill="none" stroke="#F5F4F0" stroke-width="14"/>'+
+    cats.map(c=>{
+      const dash=Math.round(circ*c.v/100);const gap=circ-dash;
+      const seg=`<circle cx="60" cy="60" r="46" fill="none" stroke="${c.c}" stroke-width="14" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset}" stroke-linecap="butt" transform="rotate(-90 60 60)"/>`;
+      offset+=dash;return seg;
+    }).join('')+
+    '<text x="60" y="56" text-anchor="middle" font-family="Sora" font-size="16" font-weight="800" fill="#1A1A16">67%</text>'+
+    '<text x="60" y="72" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#7A7670">conversão</text>';
+  document.getElementById('donut-legend').innerHTML=
+    cats.map(c=>`<div class="legend-item"><div class="legend-dot" style="background:${c.c}"></div><span>${c.l}</span><span style="margin-left:auto;font-weight:600">${c.v}%</span></div>`).join('');
+}
+
+// ── PERFIL ────────────────────────────────────────────
+function renderPerfil(){
+  if(usuario){
+    document.getElementById('perfil-avatar').textContent=usuario.sigla;
+    document.getElementById('perfil-nome').textContent=usuario.nome;
+    document.getElementById('perfil-email').textContent=usuario.email;
+  }
+  perfilTab('doacoes', document.querySelector('.perfil-tab'));
+}
+
+function perfilTab(tab, btn){
+  document.querySelectorAll('.perfil-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const content = document.getElementById('perfil-content');
+  if(tab==='doacoes'){
+    content.innerHTML=`
+      <div style="display:grid;gap:12px">
+        ${meusPubs.map(i=>`
+          <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;display:flex;align-items:center;gap:16px">
+            <div style="width:56px;height:56px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${i.emoji}</div>
+            <div style="flex:1">
+              <div class="fw700">${i.titulo}</div>
+              <div class="fs13 muted mt4">${i.cidade} · ${i.data}</div>
+            </div>
+            <span class="badge badge-verde">Ativo</span>
+          </div>`).join('')}
+        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;display:flex;align-items:center;gap:16px;opacity:.6">
+          <div style="width:56px;height:56px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">✅</div>
+          <div style="flex:1"><div class="fw700">Kit panelas (concluído)</div><div class="fs13 muted mt4">Vila Velha · 15 dias atrás</div></div>
+          <span class="badge badge-cinza">Concluído</span>
+        </div>
+      </div>`;
+  } else if(tab==='candidaturas'){
+    content.innerHTML=`
+      <div style="display:grid;gap:12px">
+        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <div style="font-size:1.6rem">🖥️</div>
+            <div><div class="fw700">Computador desktop completo</div><div class="fs13 muted">Candidatura enviada · 2 dias atrás</div></div>
+            <span class="badge badge-cinza" style="margin-left:auto">Em análise</span>
+          </div>
+          <div style="background:var(--cinza1);border-radius:var(--r3);padding:10px;font-size:.833rem;color:var(--texto2);font-style:italic">"Preciso do computador para continuar meus estudos em programação..."</div>
+        </div>
+        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <div style="font-size:1.6rem">📚</div>
+            <div><div class="fw700">Kit 30 livros didáticos</div><div class="fs13 muted">Candidatura enviada · 4 dias atrás</div></div>
+            <span class="badge badge-cinza" style="margin-left:auto">Em análise</span>
+          </div>
+          <div style="background:var(--cinza1);border-radius:var(--r3);padding:10px;font-size:.833rem;color:var(--texto2);font-style:italic">"Sou estudante do ensino médio e não tenho condições de comprar livros..."</div>
+        </div>
+      </div>`;
+  } else {
+    content.innerHTML=`
+      <div style="background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:24px">
+        <div class="fw700 fs16 mb16" style="font-family:var(--fonte)">Dados da conta</div>
+        <div class="form-stack">
+          <div class="form-group"><label>Nome completo</label><input type="text" class="input" value="${usuario?.nome||'Anderson Moreira'}"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" class="input" value="${usuario?.email||'anderson@email.com'}"></div>
+          <div class="form-group"><label>Cidade</label><input type="text" class="input" value="Vila Velha — ES"></div>
+          <div style="display:flex;gap:12px">
+            <button class="btn btn-primary" onclick="toast('Perfil atualizado!','verde')">Salvar alterações</button>
+            <button class="btn btn-ghost" style="color:var(--cinza4)" onclick="logout()">Sair da conta</button>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+function logout(){
+  usuario=null;meusPubs=[];
+  document.getElementById('nav-guest').style.display='flex';
+  document.getElementById('nav-user').style.display='none';
+  document.getElementById('nav-painel').style.display='none';
+  document.getElementById('nav-dash').style.display='none';
+  toast('Você saiu da conta','terra');
+  ir('landing');
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function abrirModal(html){
+  document.getElementById('modal-content').innerHTML=html;
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+function fecharModal(e){
+  if(e&&e.target!==document.getElementById('modal-backdrop'))return;
+  document.getElementById('modal-backdrop').classList.add('hidden');
+  document.body.style.overflow='';
+}
+
+// ── TOAST ─────────────────────────────────────────────
+function toast(msg, tipo='verde'){
+  const t=document.createElement('div');
+  t.className='toast';
+  t.style.borderLeft=`4px solid ${tipo==='verde'?'var(--verde)':'var(--terra)'}`;
+  t.innerHTML=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3000);
+}
+
+// ── INIT ───────────────────────────────────────────────
+renderLanding();
+renderFeed();
+</script>
+</body>
+</html>
