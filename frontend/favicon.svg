@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="8" fill="#1B7A4A"/>
+  <!-- Caule -->
+  <path d="M16 26 L16 14" stroke="#A8D5B5" stroke-width="2" stroke-linecap="round"/>
+  <!-- Folha principal (esquerda) -->
+  <path d="M16 14 C16 14 8 12 8 6 C8 6 14 6 16 14Z" fill="#FFFFFF"/>
+  <!-- Folha secundária (direita) -->
+  <path d="M16 18 C16 18 22 15 24 9 C24 9 18 10 16 18Z" fill="#A8D5B5"/>
+</svg>
