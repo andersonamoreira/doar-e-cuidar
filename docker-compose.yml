@@ -1,0 +1,33 @@
+services:
+
+  backend:
+    build: ./backend
+    container_name: dec-backend
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - dec-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: dec-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - dec-net
+
+networks:
+  dec-net:
+    driver: bridge
