@@ -1480,53 +1480,87 @@ async function renderPainel() {
   const grid = document.getElementById('meus-items-grid');
   if (!grid) return;
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cinza3)">Carregando...</div>';
+  // reset filtro
+  document.getElementById('painel-filtro-wrap').style.display = 'none';
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('ativo'));
   try {
-    const itens = await api('GET', '/itens/meus');
-    const ativos    = itens.filter(i => i.status === 'disponivel').length;
-    const totalCands= itens.reduce((a, i) => a + (i.total_candidatos || 0), 0);
-    const conc      = itens.filter(i => i.status === 'concluido').length;
+    painelItens = await api('GET', '/itens/meus');
+    const ativos     = painelItens.filter(i => i.status === 'disponivel').length;
+    const totalCands = painelItens.reduce((a, i) => a + (i.total_candidatos || 0), 0);
+    const conc       = painelItens.filter(i => i.status === 'concluido').length;
     document.getElementById('stat-total').textContent = ativos;
     document.getElementById('stat-cands').textContent = totalCands;
     document.getElementById('stat-conc').textContent  = conc;
-    document.getElementById('painel-count').textContent = itens.length + ' publicação(ões)';
-
-    if (!itens.length) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px">
-        <div style="font-size:2.4rem;margin-bottom:12px">📦</div>
-        <div class="fw600 fs16" style="color:var(--cinza4)">Nenhuma doação publicada ainda</div>
-        <button class="btn btn-primary" style="margin-top:16px" onclick="ir('publicar')">+ Publicar primeira doação</button>
-      </div>`; return;
-    }
-
-    grid.innerHTML = itens.map(item => {
-      const statusBadge = {
-        disponivel: '<span class="badge badge-verde">Ativo</span>',
-        concluido:  '<span class="badge badge-cinza">Concluído</span>',
-        cancelado:  '<span class="badge" style="background:var(--terra2);color:var(--terra)">Encerrado</span>',
-      }[item.status] || '';
-      return `<div class="meu-item">
-        <div class="meu-item-img">${item.categoria_emoji || '📦'}</div>
-        <div class="meu-item-body">
-          <div class="fs12 muted mb4">${item.categoria_nome || ''}</div>
-          <div class="fw700" style="font-family:var(--fonte);margin-bottom:6px">${item.titulo}</div>
-          <div class="fs13 muted">${item.cidade || ''} · ${tempoRelativo(item.created_at)}</div>
-        </div>
-        <div class="meu-item-footer">
-          <div style="display:flex;align-items:center;gap:6px">
-            ${statusBadge}
-            ${item.status === 'disponivel' ? `<span class="cands-badge">👥 ${item.total_candidatos || 0}</span>` : ''}
-          </div>
-          <div style="display:flex;gap:6px">
-            ${item.status === 'disponivel' && item.total_candidatos > 0
-              ? `<button class="btn btn-primary btn-sm" onclick="verCandidaturas(${item.id})">Ver</button>` : ''}
-            ${item.status === 'disponivel' ? `
-              <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${item.id})" title="Editar">✏️</button>
-              <button class="btn btn-ghost btn-sm" style="color:var(--terra)" onclick="confirmarEncerrar(${item.id})" title="Encerrar">✕</button>` : ''}
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    document.getElementById('painel-count').textContent = painelItens.length + ' publicação(ões)';
+    renderGridPainel(painelItens);
   } catch(e) { grid.innerHTML = '<div style="text-align:center;padding:40px">Erro ao carregar itens.</div>'; }
+}
+
+function filtrarPainel(tipo) {
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('ativo'));
+  const wrap  = document.getElementById('painel-filtro-wrap');
+  const label = document.getElementById('painel-filtro-label');
+  let filtrado;
+  if (!tipo) {
+    wrap.style.display = 'none';
+    filtrado = painelItens;
+  } else {
+    const card = document.getElementById('stat-card-' + tipo);
+    if (card) card.classList.add('ativo');
+    wrap.style.display = 'flex';
+    if (tipo === 'ativos') {
+      filtrado = painelItens.filter(i => i.status === 'disponivel');
+      label.textContent = '🟢 Mostrando: itens ativos (' + filtrado.length + ')';
+    } else if (tipo === 'candidatos') {
+      filtrado = painelItens.filter(i => i.total_candidatos > 0);
+      label.textContent = '👥 Mostrando: itens com candidaturas (' + filtrado.length + ')';
+    } else if (tipo === 'concluidos') {
+      filtrado = painelItens.filter(i => i.status === 'concluido');
+      label.textContent = '✅ Mostrando: doações concluídas (' + filtrado.length + ')';
+    }
+  }
+  renderGridPainel(filtrado);
+}
+
+function renderGridPainel(itens) {
+  const grid = document.getElementById('meus-items-grid');
+  if (!grid) return;
+  if (!itens.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px">
+      <div style="font-size:2.4rem;margin-bottom:12px">📦</div>
+      <div class="fw600 fs16" style="color:var(--cinza4)">Nenhum item nesta categoria</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:12px;color:var(--verde)" onclick="filtrarPainel(null)">Ver todos</button>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = itens.map(item => {
+    const statusBadge = {
+      disponivel: '<span class="badge badge-verde">Ativo</span>',
+      concluido:  '<span class="badge badge-cinza">Concluído</span>',
+      cancelado:  '<span class="badge" style="background:var(--terra2);color:var(--terra)">Encerrado</span>',
+    }[item.status] || '';
+    return `<div class="meu-item" onclick="abrirItem(${item.id})" style="cursor:pointer">
+      <div class="meu-item-img">${item.categoria_emoji || '📦'}</div>
+      <div class="meu-item-body">
+        <div class="fs12 muted mb4">${item.categoria_nome || ''}</div>
+        <div class="fw700" style="font-family:var(--fonte);margin-bottom:6px">${item.titulo}</div>
+        <div class="fs13 muted">${item.cidade || ''} · ${tempoRelativo(item.created_at)}</div>
+      </div>
+      <div class="meu-item-footer" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;gap:6px">
+          ${statusBadge}
+          ${item.status === 'disponivel' ? `<span class="cands-badge">👥 ${item.total_candidatos || 0}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px">
+          ${item.status === 'disponivel' && item.total_candidatos > 0
+            ? `<button class="btn btn-primary btn-sm" onclick="verCandidaturas(${item.id})">Ver candidatos</button>` : ''}
+          ${item.status === 'disponivel' ? `
+            <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${item.id})" title="Editar">✏️</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--terra)" onclick="confirmarEncerrar(${item.id})" title="Encerrar">✕</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── DASHBOARD ────────────────────────────────────────────────
