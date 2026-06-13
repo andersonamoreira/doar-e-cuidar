@@ -4,7 +4,7 @@ const pool   = require('../config/db');
 
 const register = async (req, res, next) => {
   try {
-    const { nome, email, senha, tipo = 'ambos' } = req.body;
+    const { nome, email, senha, tipo = 'ambos', cidade, cep } = req.body;
     if (!nome || !email || !senha)
       return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios' });
 
@@ -16,10 +16,10 @@ const register = async (req, res, next) => {
     const avatar_sigla = nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
     const { rows } = await pool.query(
-      `INSERT INTO usuarios (nome, email, senha_hash, tipo, avatar_sigla)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, nome, email, tipo, avatar_sigla, created_at`,
-      [nome, email, senha_hash, tipo, avatar_sigla]
+      `INSERT INTO usuarios (nome, email, senha_hash, tipo, avatar_sigla, cidade, cep)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, nome, email, tipo, avatar_sigla, cidade, cep, created_at`,
+      [nome, email, senha_hash, tipo, avatar_sigla, cidade || null, cep || null]
     );
 
     const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET, { expiresIn: '7d' });
