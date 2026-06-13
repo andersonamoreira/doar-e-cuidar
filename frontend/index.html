@@ -1009,10 +1009,12 @@ function autenticar(tk, user) {
 
 function atualizarNav() {
   const ok = !!usuario;
-  document.getElementById('nav-guest').style.display  = ok ? 'none' : 'flex';
-  document.getElementById('nav-user').style.display   = ok ? 'flex'  : 'none';
-  document.getElementById('nav-painel').style.display = ok ? ''      : 'none';
-  document.getElementById('nav-dash').style.display   = ok ? ''      : 'none';
+  document.getElementById('nav-guest').style.display      = ok ? 'none'  : 'flex';
+  document.getElementById('nav-user').style.display       = ok ? 'flex'  : 'none';
+  document.getElementById('nav-painel').style.display     = ok ? ''      : 'none';
+  document.getElementById('nav-dash').style.display       = ok ? ''      : 'none';
+  document.getElementById('mob-logado').style.display     = ok ? 'block' : 'none';
+  document.getElementById('mob-visitante').style.display  = ok ? 'none'  : 'block';
   if (ok) document.getElementById('nav-avatar-btn').textContent = usuario.avatar_sigla || '?';
 }
 
