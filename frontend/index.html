@@ -703,18 +703,26 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
       <button class="btn btn-primary" onclick="ir('publicar')">+ Nova doação</button>
     </div>
     <!-- Stats mini -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
       <div class="stat-card" id="stat-card-ativos" onclick="filtrarPainel('ativos')" title="Ver itens ativos">
-        <div style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:var(--verde)" id="stat-total">0</div>
+        <div style="font-size:1.3rem;margin-bottom:4px">🟢</div>
+        <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--verde)" id="stat-total">0</div>
         <div class="fs12 muted mt4">Itens ativos</div>
       </div>
-      <div class="stat-card" id="stat-card-candidatos" onclick="filtrarPainel('candidatos')" title="Ver itens com candidaturas">
-        <div style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:var(--terra)" id="stat-cands">0</div>
-        <div class="fs12 muted mt4">Candidaturas recebidas</div>
+      <div class="stat-card" id="stat-card-candidatos" onclick="filtrarPainel('candidatos')" title="Ver itens com candidaturas recebidas">
+        <div style="font-size:1.3rem;margin-bottom:4px">👥</div>
+        <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--terra)" id="stat-cands">0</div>
+        <div class="fs12 muted mt4">Cand. recebidas</div>
       </div>
       <div class="stat-card" id="stat-card-concluidos" onclick="filtrarPainel('concluidos')" title="Ver doações concluídas">
-        <div style="font-family:var(--fonte);font-size:1.6rem;font-weight:800;color:#2E7D32" id="stat-conc">0</div>
-        <div class="fs12 muted mt4">Doações concluídas</div>
+        <div style="font-size:1.3rem;margin-bottom:4px">✅</div>
+        <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:#2E7D32" id="stat-conc">0</div>
+        <div class="fs12 muted mt4">Concluídas</div>
+      </div>
+      <div class="stat-card" id="stat-card-enviadas" onclick="filtrarPainel('enviadas')" title="Ver candidaturas que enviei">
+        <div style="font-size:1.3rem;margin-bottom:4px">📩</div>
+        <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:#1565C0" id="stat-cands-env">0</div>
+        <div class="fs12 muted mt4">Cand. enviadas</div>
       </div>
     </div>
     <div id="painel-filtro-wrap" style="display:none;align-items:center;justify-content:space-between;margin-bottom:16px;background:var(--verde3);border-radius:var(--r3);padding:10px 14px">
