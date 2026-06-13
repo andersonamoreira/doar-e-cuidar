@@ -2013,6 +2013,68 @@ function toast(msg, tipo = 'verde') {
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
+// ── SENHA / RESET ────────────────────────────────────────────
+function senhaForca(s) {
+  if (!s) return '';
+  if (s.length < 6) return '🔴 Muito curta';
+  if (s.length < 8) return '🟠 Fraca';
+  const temNum = /\d/.test(s), temMai = /[A-Z]/.test(s), temEsp = /[^a-zA-Z0-9]/.test(s);
+  const pts = [s.length >= 10, temNum, temMai, temEsp].filter(Boolean).length;
+  return pts >= 3 ? '🟢 Forte' : '🟡 Média';
+}
+
+async function pedirResetSenha() {
+  const email = document.getElementById('esqueci-email').value.trim();
+  if (!email) { toast('Informe o seu e-mail', 'terra'); return; }
+  try {
+    const r = await api('POST', '/auth/esqueci-senha', { email });
+    document.getElementById('form-esqueci').innerHTML = `
+      <div style="text-align:center;padding:16px">
+        <div style="font-size:2.4rem">📬</div>
+        <div class="fw600 fs16 mt12">E-mail enviado!</div>
+        <p class="muted fs13 mt8">${r.message}</p>
+        <button class="btn btn-ghost btn-sm mt16" style="color:var(--cinza4)" onclick="switchAuthTab('login')">← Voltar ao login</button>
+      </div>`;
+  } catch(e) { toast(e.message, 'terra'); }
+}
+
+async function fazerResetSenha() {
+  const token    = document.getElementById('reset-token').value;
+  const nova     = document.getElementById('reset-nova').value;
+  const confirma = document.getElementById('reset-confirma').value;
+  if (!token)            { toast('Token inválido. Abra o link recebido no e-mail.', 'terra'); return; }
+  if (nova.length < 8)   { toast('A senha deve ter ao menos 8 caracteres', 'terra'); return; }
+  if (nova !== confirma) { toast('As senhas não coincidem', 'terra'); return; }
+  try {
+    const r = await api('POST', '/auth/redefinir-senha', { token, nova_senha: nova });
+    toast('✅ ' + r.message, 'verde');
+    setTimeout(() => { ir('auth'); switchAuthTab('login'); }, 1500);
+  } catch(e) { toast(e.message, 'terra'); }
+}
+
+async function trocarSenhaPerfil() {
+  const atual    = document.getElementById('senha-atual').value;
+  const nova     = document.getElementById('senha-nova').value;
+  const confirma = document.getElementById('senha-confirma').value;
+  if (!atual || !nova || !confirma) { toast('Preencha todos os campos', 'terra'); return; }
+  if (nova.length < 8)              { toast('A nova senha deve ter ao menos 8 caracteres', 'terra'); return; }
+  if (nova !== confirma)            { toast('As senhas não coincidem', 'terra'); return; }
+  try {
+    const r = await api('PATCH', '/usuarios/trocar-senha', { senha_atual: atual, nova_senha: nova });
+    toast('✅ ' + r.message, 'verde');
+    ['senha-atual','senha-nova','senha-confirma'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('senha-forca').textContent = '';
+  } catch(e) { toast(e.message, 'terra'); }
+}
+
+async function verificarEmailToken(token) {
+  try {
+    const r = await api('POST', '/auth/verificar-email', { token });
+    toast('✅ ' + r.message, 'verde');
+    if (usuario) usuario.email_verificado = true;
+  } catch(e) { toast('Falha na verificação: ' + e.message, 'terra'); }
+}
+
 // ── INIT ─────────────────────────────────────────────────────
 async function init() {
   // Carregar categorias e popular select
