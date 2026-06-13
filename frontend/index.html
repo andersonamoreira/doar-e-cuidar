@@ -500,9 +500,29 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
         </div>
         <button class="btn btn-primary btn-full" style="margin-top:4px" onclick="fazerLogin()">Entrar na minha conta</button>
       </div>
-      <div class="divider" style="margin-top:20px">ou</div>
+      <div style="text-align:center;margin-top:12px">
+        <span style="font-size:.833rem;color:var(--cinza4);cursor:pointer" onclick="switchAuthTab('esqueci')">Esqueci minha senha</span>
+      </div>
+      <div class="divider" style="margin-top:16px">ou</div>
       <div style="margin-top:16px;text-align:center;font-size:.867rem;color:var(--cinza4)">
         Não tem conta? <span style="color:var(--verde);cursor:pointer;font-weight:600" onclick="switchAuthTab('cadastro')">Cadastre-se grátis</span>
+      </div>
+    </div>
+    <div id="form-esqueci" style="display:none">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:1.8rem">📧</div>
+        <div class="fw600 fs16 mt8">Recuperar senha</div>
+        <div class="muted fs13 mt4">Informe seu e-mail e enviaremos um link para criar uma nova senha.</div>
+      </div>
+      <div class="form-stack">
+        <div class="form-group">
+          <label>E-mail cadastrado</label>
+          <input type="email" class="input" placeholder="seu@email.com" id="esqueci-email">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="pedirResetSenha()">Enviar link de recuperação</button>
+      </div>
+      <div style="text-align:center;margin-top:16px">
+        <span style="font-size:.833rem;color:var(--cinza4);cursor:pointer" onclick="switchAuthTab('login')">← Voltar ao login</span>
       </div>
     </div>
     <div id="form-cadastro" style="display:none">
