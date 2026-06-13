@@ -1623,19 +1623,34 @@ async function perfilTab(tab, btn) {
   } else if (tab === 'candidaturas') {
     try {
       const cands = await api('GET', '/candidaturas/minhas');
-      if (!cands.length) { content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cinza3)">Nenhuma candidatura enviada ainda.</div>'; return; }
-      const SLABEL = { pendente:'Em análise', selecionado:'✅ Selecionado', rejeitado:'Não selecionado' };
+      if (!cands.length) {
+        content.innerHTML = `<div style="text-align:center;padding:60px 20px">
+          <div style="font-size:2.4rem;margin-bottom:12px">🔍</div>
+          <div class="fw600 fs16" style="color:var(--cinza4)">Nenhuma candidatura enviada ainda</div>
+          <p class="muted fs13 mt8">Explore o feed e demonstre interesse em itens disponíveis.</p>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="ir('feed')">Ver doações disponíveis</button>
+        </div>`;
+        return;
+      }
+      const SLABEL = { pendente:'⏳ Em análise', selecionado:'✅ Selecionado!', rejeitado:'❌ Não selecionado' };
       const SBADGE = { pendente:'badge-cinza', selecionado:'badge-verde', rejeitado:'badge-cinza' };
+      const SCORESTYLE = { selecionado:'border-color:var(--verde);background:var(--verde3)', rejeitado:'', pendente:'' };
       content.innerHTML = `<div style="display:grid;gap:12px">${cands.map(c => `
-        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-            <div style="font-size:1.6rem">${c.categoria_emoji || '📦'}</div>
-            <div><div class="fw700">${c.titulo}</div><div class="fs13 muted">${tempoRelativo(c.created_at)}</div></div>
-            <span class="badge ${SBADGE[c.status] || 'badge-cinza'}" style="margin-left:auto">${SLABEL[c.status] || c.status}</span>
+        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;${SCORESTYLE[c.status]||''}">
+          <div style="display:flex;align-items:start;gap:12px">
+            <div style="width:48px;height:48px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${c.categoria_emoji || '📦'}</div>
+            <div style="flex:1;min-width:0">
+              <div class="fw700 fs14" style="margin-bottom:2px">${c.titulo || 'Item'}</div>
+              <div class="fs12 muted">Candidatura enviada ${tempoRelativo(c.created_at)}</div>
+              <div style="margin-top:8px;background:var(--cinza1);border-radius:var(--r3);padding:8px 10px;font-size:.8rem;color:var(--texto2);font-style:italic;border-left:3px solid var(--cinza3)">"${c.justificativa}"</div>
+            </div>
           </div>
-          <div style="background:var(--cinza1);border-radius:var(--r3);padding:10px;font-size:.833rem;color:var(--texto2);font-style:italic">"${c.justificativa}"</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--cinza1)">
+            <span class="badge ${SBADGE[c.status] || 'badge-cinza'}">${SLABEL[c.status] || c.status}</span>
+            <button class="btn btn-ghost btn-sm" style="color:var(--verde)" onclick="abrirItem(${c.item_id})">Ver item →</button>
+          </div>
         </div>`).join('')}</div>`;
-    } catch(e) { content.innerHTML = '<div style="text-align:center;padding:40px">Erro ao carregar.</div>'; }
+    } catch(e) { content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--terra)">Erro ao carregar candidaturas. Tente novamente.</div>'; }
 
   } else {
     content.innerHTML = `
