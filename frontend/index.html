@@ -302,7 +302,13 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
     </div>
     <div id="nav-user" style="display:none;align-items:center;gap:8px">
       <button class="btn btn-secondary btn-sm" onclick="ir('publicar')">+ Publicar Doação</button>
-      <button class="nav-avatar" onclick="ir('perfil')" title="Meu perfil" id="nav-avatar-btn">AM</button>
+      <div class="nav-avatar-wrap" id="nav-avatar-wrap">
+        <button class="nav-avatar" onclick="toggleAvatarMenu()" id="nav-avatar-btn">AM</button>
+        <div class="nav-avatar-menu" id="nav-avatar-menu">
+          <button onclick="fecharAvatarMenu();ir('perfil')">👤 Meu perfil</button>
+          <button onclick="fecharAvatarMenu();logout()" style="color:var(--terra)">🚪 Sair da conta</button>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
