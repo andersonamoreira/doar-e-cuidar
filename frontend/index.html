@@ -1082,7 +1082,20 @@ async function abrirItem(id) {
     itemAtual = i;
     const estadoLabel = ESTADO_DISPLAY[i.estado_conservacao] || i.estado_conservacao;
 
-    document.getElementById('det-img-main').textContent = i.categoria_emoji || '📦';
+    const imgs = i.imagens || [];
+    const mainEl  = document.getElementById('det-img-main');
+    const thumbEl = document.getElementById('det-thumbs');
+    if (imgs.length) {
+      mainEl.innerHTML = `<img src="${imgs[0].url}" alt="${i.titulo}" loading="lazy">`;
+      if (imgs.length > 1) {
+        thumbEl.innerHTML = imgs.map((img, idx) => `
+          <div class="detalhe-thumb${idx === 0 ? ' ativa' : ''}" onclick="trocarFotoDetalhe('${img.url}', this)">
+            <img src="${img.url}" alt="foto ${idx + 1}" loading="lazy">
+          </div>`).join('');
+      }
+    } else {
+      mainEl.innerHTML = `<span>${i.categoria_emoji || '📦'}</span>`;
+    }
     document.getElementById('det-title').textContent = i.titulo;
     document.getElementById('det-tags').innerHTML =
       `<span class="badge badge-verde">${i.categoria_nome || ''}</span>
