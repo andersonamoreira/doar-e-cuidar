@@ -497,6 +497,16 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
             <option value="receptor">Principalmente receptor</option>
           </select>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:16px">
+          <div class="form-group">
+            <label>CEP</label>
+            <input type="text" class="input" placeholder="00000-000" id="cad-cep" maxlength="9" oninput="formatarCep(this,'cad-cidade')" onblur="buscarCep(this.value,'cad-cidade')">
+          </div>
+          <div class="form-group">
+            <label>Cidade <span class="muted fs12">(preenchida pelo CEP)</span></label>
+            <input type="text" class="input" placeholder="Preenchida automaticamente" id="cad-cidade" readonly style="background:var(--cinza1);cursor:default">
+          </div>
+        </div>
         <button class="btn btn-primary btn-full" style="margin-top:4px" onclick="fazerCadastro()">Criar minha conta</button>
       </div>
       <div style="margin-top:16px;text-align:center;font-size:.867rem;color:var(--cinza4)">
