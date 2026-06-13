@@ -1588,6 +1588,11 @@ async function renderPerfil() {
   document.getElementById('perfil-avatar').textContent = usuario.avatar_sigla || '?';
   document.getElementById('perfil-nome').textContent   = usuario.nome;
   document.getElementById('perfil-email').textContent  = usuario.email;
+  // Marca notificações como lidas e limpa badge
+  api('PATCH', '/usuarios/notificacoes/lidas').then(() => {
+    const badge = document.getElementById('notif-badge');
+    if (badge) badge.style.display = 'none';
+  }).catch(() => {});
   try {
     const stats = await api('GET', '/usuarios/estatisticas');
     const el = document.getElementById('perfil-stats');
