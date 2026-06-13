@@ -126,7 +126,8 @@ const meusPorDoador = async (req, res, next) => {
   try {
     const { rows } = await pool.query(`
       SELECT i.*, c.nome AS categoria_nome, c.emoji AS categoria_emoji,
-        COUNT(DISTINCT ca.id)::int AS total_candidatos
+        COUNT(DISTINCT ca.id)::int AS total_candidatos,
+        (SELECT url FROM imagens_item WHERE item_id = i.id ORDER BY ordem LIMIT 1) AS imagem_principal
       FROM itens i
       LEFT JOIN categorias c ON c.id = i.categoria_id
       LEFT JOIN candidaturas ca ON ca.item_id = i.id
