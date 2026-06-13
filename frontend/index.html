@@ -956,14 +956,16 @@ async function fazerLogin() {
 }
 
 async function fazerCadastro() {
-  const nome  = document.getElementById('cad-nome').value.trim();
-  const email = document.getElementById('cad-email').value.trim();
-  const senha = document.getElementById('cad-senha').value;
-  const tipo  = document.getElementById('cad-tipo').value;
+  const nome   = document.getElementById('cad-nome').value.trim();
+  const email  = document.getElementById('cad-email').value.trim();
+  const senha  = document.getElementById('cad-senha').value;
+  const tipo   = document.getElementById('cad-tipo').value;
+  const cep    = document.getElementById('cad-cep').value.trim();
+  const cidade = document.getElementById('cad-cidade').value.trim();
   if (!nome || !email || !senha) { toast('Preencha todos os campos', 'terra'); return; }
   if (senha.length < 8) { toast('Senha deve ter ao menos 8 caracteres', 'terra'); return; }
   try {
-    const data = await api('POST', '/auth/register', { nome, email, senha, tipo });
+    const data = await api('POST', '/auth/register', { nome, email, senha, tipo, cidade, cep });
     autenticar(data.token, data.user);
     toast('🎉 Conta criada! Bem-vindo(a), ' + data.user.nome.split(' ')[0] + '!', 'verde');
     ir('feed');
