@@ -59,4 +59,22 @@ const marcarNotifLida = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { perfil, atualizar, estatisticas, notificacoes, marcarNotifLida };
+const trocarSenha = async (req, res, next) => {
+  try {
+    const { senha_atual, nova_senha } = req.body;
+    if (!senha_atual || !nova_senha) return res.status(400).json({ error: 'Preencha todos os campos' });
+    if (nova_senha.length < 8) return res.status(400).json({ error: 'A nova senha deve ter ao menos 8 caracteres' });
+
+    const { rows } = await pool.query('SELECT senha_hash FROM usuarios WHERE id = $1', [req.userId]);
+    if (!rows.length) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    const valida = await bcrypt.compare(senha_atual, rows[0].senha_hash);
+    if (!valida) return res.status(400).json({ error: 'Senha atual incorreta' });
+
+    const hash = await bcrypt.hash(nova_senha, 10);
+    await pool.query('UPDATE usuarios SET senha_hash = $1, updated_at = NOW() WHERE id = $2', [hash, req.userId]);
+    res.json({ message: 'Senha alterada com sucesso!' });
+  } catch (err) { next(err); }
+};
+
+module.exports = { perfil, atualizar, estatisticas, notificacoes, marcarNotifLida, trocarSenha };
