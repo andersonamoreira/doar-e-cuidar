@@ -1142,6 +1142,12 @@ async function abrirItem(id) {
   } catch(e) { toast('Erro ao carregar item', 'terra'); }
 }
 
+function trocarFotoDetalhe(url, thumbClicado) {
+  document.getElementById('det-img-main').innerHTML = `<img src="${url}" loading="lazy">`;
+  document.querySelectorAll('.detalhe-thumb').forEach(t => t.classList.remove('ativa'));
+  thumbClicado.classList.add('ativa');
+}
+
 // ── CANDIDATURA (receptor) ────────────────────────────────────
 function abrirModalCandidatura() {
   abrirModal(`
