@@ -56,7 +56,7 @@ const getStats = async (req, res, next) => {
                  i.titulo,
                  ca.created_at
           FROM candidaturas ca
-          JOIN usuarios u ON u.id = ca.candidato_id
+          JOIN usuarios u ON u.id = ca.usuario_id
           JOIN itens i    ON i.id = ca.item_id
         ) t
         ORDER BY quando DESC
