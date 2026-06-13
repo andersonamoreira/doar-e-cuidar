@@ -1883,7 +1883,9 @@ async function perfilTab(tab, btn) {
       content.innerHTML = `<div style="display:grid;gap:12px">${cands.map(c => `
         <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;${SCORESTYLE[c.status]||''}">
           <div style="display:flex;align-items:start;gap:12px">
-            <div style="width:48px;height:48px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${c.categoria_emoji || '📦'}</div>
+            ${c.imagem_principal
+              ? `<img src="${c.imagem_principal}" alt="${c.titulo}" style="width:48px;height:48px;border-radius:var(--r3);object-fit:cover;flex-shrink:0">`
+              : `<div style="width:48px;height:48px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${c.categoria_emoji || '📦'}</div>`}
             <div style="flex:1;min-width:0">
               <div class="fw700 fs14" style="margin-bottom:2px">${c.titulo || 'Item'}</div>
               <div class="fs12 muted">Candidatura enviada ${tempoRelativo(c.created_at)}</div>
