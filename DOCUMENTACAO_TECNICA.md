@@ -1,171 +1,155 @@
 # Documentação Técnica — Plataforma Doar é Cuidar
 
 **Instituição:** Centro Universitário FAESA  
-**Disciplina:** Projeto Integrador / Desenvolvimento de Sistemas  
+**Disciplina:** Projeto Integrador III  
 **Ano:** 2026  
-**Autor:** Anderson Moreira  
-**URL de produção:** https://doarecuidar.com.br
+**Autores:** Anderson Moreira, Bruna Soares, Mayara Hafez  
+**URL de produção:** https://doarecuidar.com.br  
+**Repositório:** GitHub (privado)  
+**Servidor:** VPS Linux — 38.199.208.34
 
 ---
 
-## 1. Visão Geral do Projeto
+## 1. Visão Geral
 
-**Doar é Cuidar** é uma plataforma web de doações que conecta pessoas que desejam doar itens usados (doadores) com pessoas que precisam desses itens (receptores). O sistema permite o cadastro de itens para doação com fotos, busca e filtragem por categoria e estado de conservação, candidatura de interessados, e seleção do beneficiário pelo doador.
+**Doar é Cuidar** é uma plataforma web de doações que conecta pessoas que desejam doar itens com pessoas que precisam recebê-los. Todo o processo — cadastro, publicação, candidatura e seleção do beneficiário — ocorre de forma online, sem intermediários.
 
-### 1.1 Objetivos
-
-- Facilitar a circulação de bens entre pessoas, reduzindo o descarte desnecessário
-- Oferecer um processo transparente de candidatura e seleção
-- Garantir rastreabilidade das doações via histórico de usuário
-- Disponibilizar a plataforma 100% online e sem custo de acesso
-
-### 1.2 Funcionalidades Implementadas
-
-| Funcionalidade | Status |
-|---|---|
-| Cadastro e login de usuário (doador/receptor) | ✅ Implementado |
-| Sessão persistente via JWT | ✅ Implementado |
-| Feed público de doações com filtros | ✅ Implementado |
-| Publicação de item com fotos reais | ✅ Implementado |
-| Upload e armazenamento de fotos (até 5 por item) | ✅ Implementado |
-| Visualização de detalhe do item com galeria | ✅ Implementado |
-| Candidatura com justificativa | ✅ Implementado |
-| Seleção de beneficiário pelo doador | ✅ Implementado |
-| Encerrar doação publicada | ✅ Implementado |
-| Editar dados de uma doação | ✅ Implementado |
-| Painel do doador com histórico | ✅ Implementado |
-| Perfil do usuário com estatísticas | ✅ Implementado |
-| Notificações internas | ✅ Implementado |
-| Dashboard administrativo | ✅ Implementado (estrutura) |
+O sistema está completamente funcional em produção, com banco de dados real, autenticação por JWT, upload de fotos armazenadas em servidor e domínio próprio com HTTPS via Cloudflare.
 
 ---
 
-## 2. Arquitetura do Sistema
-
-O sistema adota uma arquitetura em três camadas, totalmente conteinerizada com Docker:
-
-```
-                        INTERNET
-                           │
-                    ┌──────▼───────┐
-                    │  Cloudflare  │  DNS + SSL (modo Flexible)
-                    └──────┬───────┘
-                           │ HTTP :80
-                    ┌──────▼────────────────┐
-                    │  camilassilvapsi-     │  Nginx principal do servidor
-                    │  nginx-1              │  (proxy reverso multi-domínio)
-                    └──────┬────────────────┘
-                           │ rede: dec-web-shared
-                    ┌──────▼───────┐
-                    │  dec-nginx   │  Nginx da aplicação (porta interna)
-                    └──┬───────┬───┘
-                       │       │
-          ┌────────────┘       └──────────────────┐
-          │ /api/*                                 │ / e /uploads/
-   ┌──────▼────────┐                    ┌──────────▼──────────┐
-   │  dec-backend  │                    │  Arquivos estáticos │
-   │  (Node.js)    │                    │  frontend/ + volume  │
-   └──────┬────────┘                    │  doarecuidar_uploads│
-          │ rede: dec-db-shared         └─────────────────────┘
-   ┌──────▼────────┐
-   │  PostgreSQL   │  (compartilhado com outros apps do servidor)
-   └───────────────┘
-```
-
-### 2.1 Redes Docker
-
-| Rede | Tipo | Finalidade |
-|---|---|---|
-| `dec-net` | bridge (interna) | Comunicação entre backend e dec-nginx |
-| `dec-db-shared` | external | Acesso do backend ao PostgreSQL compartilhado |
-| `dec-web-shared` | external | Acesso do nginx principal ao dec-nginx |
-
-### 2.2 Volume Docker
-
-| Volume | Montado em (backend) | Montado em (nginx) | Finalidade |
-|---|---|---|---|
-| `doarecuidar_uploads` | `/app/uploads` (leitura/escrita) | `/uploads` (somente leitura) | Armazenamento persistente das fotos dos itens |
-
----
-
-## 3. Stack Tecnológica
+## 2. Stack Tecnológica Atual
 
 ### Frontend
-| Tecnologia | Versão / Detalhe |
+| Tecnologia | Detalhes |
 |---|---|
-| HTML5 | SPA (Single Page Application) em arquivo único |
-| CSS3 | Custom Properties, Grid, Flexbox — sem framework CSS |
-| JavaScript | Vanilla ES2020+ (sem framework JS) |
-| Comunicação | `fetch` API nativa com JSON e FormData |
+| HTML5 | Estrutura das telas e formulários |
+| CSS3 | Design system com Custom Properties, Grid, Flexbox, media queries |
+| JavaScript (ES2020+) | Vanilla JS puro — sem nenhum framework |
+| Google Fonts (CDN) | Sora (títulos) + DM Sans (corpo) |
+| Fetch API | Comunicação assíncrona com o backend |
+| FormData API | Envio de arquivos (upload de fotos) |
+| localStorage | Persistência do token JWT no navegador |
 
 ### Backend
-| Tecnologia | Versão |
-|---|---|
-| Node.js | 20 (LTS) |
-| Express.js | ^4.19 |
-| jsonwebtoken | ^9.0 |
-| bcryptjs | ^2.4 |
-| multer | ^2.0 |
-| pg (node-postgres) | ^8.12 |
-| dotenv | ^16.4 |
+| Tecnologia | Versão | Finalidade |
+|---|---|---|
+| Node.js | 20 LTS | Runtime JavaScript no servidor |
+| Express.js | ^4.19 | Framework HTTP e roteamento |
+| jsonwebtoken | ^9.0 | Geração e validação de tokens JWT |
+| bcryptjs | ^2.4 | Hash de senhas com salt |
+| multer | ^2.0 | Recebimento e armazenamento de fotos (multipart) |
+| pg (node-postgres) | ^8.12 | Driver de conexão com PostgreSQL |
+| dotenv | ^16.4 | Carregamento de variáveis de ambiente |
 
 ### Banco de Dados
-| Tecnologia | Detalhe |
+| Tecnologia | Detalhes |
 |---|---|
-| PostgreSQL | Instância compartilhada no servidor |
+| PostgreSQL | Banco relacional; instância compartilhada no servidor de produção |
 | Banco | `dec` |
-| Extensão | `uuid-ossp` |
+| Extensão ativa | `uuid-ossp` |
 
 ### Infraestrutura
-| Tecnologia | Detalhe |
+| Tecnologia | Detalhes |
 |---|---|
-| Docker | Conteinerização de backend e nginx |
-| Docker Compose | Orquestração dos serviços |
-| Nginx | 1.27-alpine (proxy reverso + arquivos estáticos) |
-| Servidor | VPS Linux — IP 38.199.208.34 |
-| DNS / CDN | Cloudflare (SSL Flexible) |
-| Domínio | doarecuidar.com.br |
+| Docker | Conteinerização dos serviços |
+| Docker Compose | Orquestração: backend + nginx |
+| Nginx 1.27 (Alpine) | Proxy reverso, arquivos estáticos, serving das fotos |
+| Cloudflare | DNS autoritativo, CDN e terminação SSL (modo Flexible) |
+| VPS Linux | Servidor de produção — todas as peças rodam aqui |
+| Git + GitHub | Versionamento; deploy por `git pull` no servidor |
 
 ---
 
-## 4. Estrutura de Diretórios
+## 3. Arquitetura Completa
+
+```
+                         INTERNET
+                            │
+                   ┌────────▼─────────┐
+                   │   Cloudflare      │
+                   │  DNS + SSL/HTTPS  │
+                   └────────┬─────────┘
+                            │ HTTP :80
+               ┌────────────▼──────────────────┐
+               │   camilassilvapsi-nginx-1      │
+               │   Nginx principal do servidor  │
+               │   (proxy reverso multi-domínio)│
+               └────────────┬──────────────────┘
+                            │ rede Docker: dec-web-shared
+               ┌────────────▼──────────┐
+               │      dec-nginx        │
+               │   Nginx da aplicação  │
+               └──────┬──────────┬─────┘
+                      │          │
+          ┌───────────┘          └──────────────────────┐
+     /api/*                    / (frontend) e /uploads/ (fotos)
+          │
+  ┌───────▼──────────┐         ┌──────────────────────────────┐
+  │   dec-backend    │         │  Volume: doarecuidar_uploads  │
+  │   Node.js :3000  │         │  Fotos persistidas no disco   │
+  └───────┬──────────┘         └──────────────────────────────┘
+          │ rede Docker: dec-db-shared
+  ┌───────▼──────────┐
+  │   PostgreSQL     │
+  │   banco: dec     │
+  └──────────────────┘
+```
+
+### Redes Docker
+
+| Rede | Tipo | Conecta |
+|---|---|---|
+| `dec-net` | bridge interna | dec-backend ↔ dec-nginx |
+| `dec-db-shared` | external | dec-backend ↔ PostgreSQL |
+| `dec-web-shared` | external | dec-nginx ↔ nginx principal |
+
+### Volume Docker
+
+| Volume | Backend | Nginx |
+|---|---|---|
+| `doarecuidar_uploads` | `/app/uploads` (escrita) | `/uploads` (somente leitura) |
+
+---
+
+## 4. Estrutura de Arquivos do Projeto
 
 ```
 doar-e-cuidar/
 │
 ├── frontend/
-│   ├── index.html          # SPA completa (HTML + CSS + JS)
-│   └── favicon.svg         # Ícone da plataforma (folhinha verde)
+│   ├── index.html              ← SPA completa: HTML + CSS + JavaScript
+│   └── favicon.svg             ← Ícone da plataforma (folhinha verde SVG)
 │
 ├── backend/
 │   ├── Dockerfile
 │   ├── package.json
 │   └── src/
-│       ├── app.js                      # Entry point / configuração Express
+│       ├── app.js              ← Entry point Express: rotas + middleware
 │       ├── config/
-│       │   ├── db.js                   # Pool de conexão PostgreSQL
-│       │   └── upload.js               # Configuração do Multer
+│       │   ├── db.js           ← Pool de conexão PostgreSQL
+│       │   └── upload.js       ← Configuração Multer (destino, filtro, limite)
 │       ├── middleware/
-│       │   ├── auth.js                 # Validação JWT
-│       │   └── error.js                # Handler global de erros
+│       │   ├── auth.js         ← Validação do token JWT em rotas protegidas
+│       │   └── error.js        ← Handler global de erros HTTP 500
 │       ├── routes/
-│       │   ├── auth.js
-│       │   ├── itens.js
-│       │   ├── candidaturas.js
-│       │   ├── usuarios.js
-│       │   └── categorias.js
+│       │   ├── auth.js         ← /api/auth/*
+│       │   ├── itens.js        ← /api/itens/*
+│       │   ├── candidaturas.js ← /api/candidaturas/*
+│       │   ├── usuarios.js     ← /api/usuarios/*
+│       │   └── categorias.js   ← /api/categorias
 │       └── controllers/
-│           ├── auth.js
-│           ├── itens.js
-│           ├── uploads.js
-│           ├── candidaturas.js
-│           └── usuarios.js
+│           ├── auth.js         ← register, login, me
+│           ├── itens.js        ← listar, buscar, criar, atualizar, encerrar, meusPorDoador
+│           ├── uploads.js      ← subirImagem, removerImagem
+│           ├── candidaturas.js ← listarPorItem, minhasCandidaturas, candidatar, selecionar
+│           └── usuarios.js     ← perfil, atualizar, estatisticas, notificacoes, marcarNotifLida
 │
 ├── database/
-│   └── init.sql            # Schema completo + dados iniciais
+│   └── init.sql                ← Schema completo + índices + dados iniciais
 │
 ├── nginx/
-│   └── nginx.conf          # Configuração do dec-nginx
+│   └── nginx.conf              ← Configuração do dec-nginx
 │
 ├── docker-compose.yml
 ├── .env.example
@@ -177,193 +161,195 @@ doar-e-cuidar/
 
 ## 5. Banco de Dados
 
-### 5.1 Diagrama de Entidades e Relacionamentos
+### 5.1 Diagrama Entidade-Relacionamento
 
 ```
-┌─────────────┐       ┌──────────────┐       ┌──────────────────┐
-│  categorias │       │    itens     │       │   imagens_item   │
-│─────────────│       │──────────────│       │──────────────────│
-│ id (PK)     │◄──┐   │ id (PK)      │──────►│ id (PK)          │
-│ nome        │   │   │ titulo       │       │ item_id (FK)     │
-│ emoji       │   │   │ descricao    │       │ url              │
-│ slug        │   └───│ categoria_id │       │ ordem            │
-└─────────────┘       │ estado_cons. │       └──────────────────┘
-                      │ cidade / cep │
-                      │ status       │       ┌──────────────────┐
-┌─────────────┐       │ doador_id(FK)│       │  candidaturas    │
-│  usuarios   │       │ benefic._id  │       │──────────────────│
-│─────────────│       └──────────────┘       │ id (PK)          │
-│ id (PK)     │◄────────────────────────────►│ item_id (FK)     │
-│ nome        │       ┌──────────────┐       │ usuario_id (FK)  │
-│ email       │       │ notificacoes │       │ justificativa    │
-│ senha_hash  │       │──────────────│       │ status           │
-│ tipo        │◄──────│ usuario_id   │       └──────────────────┘
-│ avatar_sigla│       │ tipo         │
-│ cidade/cep  │       │ mensagem     │
-│ ativo       │       │ item_id (FK) │
-└─────────────┘       │ lida         │
-                      └──────────────┘
+┌──────────────┐         ┌──────────────────┐       ┌──────────────────┐
+│  categorias  │         │      itens        │       │  imagens_item    │
+│──────────────│         │──────────────────│       │──────────────────│
+│ id (PK)      │◄────────│ id (PK)           │──────►│ id (PK)          │
+│ nome         │  cat_id │ titulo            │       │ item_id (FK)     │
+│ emoji        │         │ descricao         │       │ url  (/uploads/) │
+│ slug         │         │ estado_conservacao│       │ ordem            │
+└──────────────┘         │ cidade / cep      │       └──────────────────┘
+                         │ status            │
+                         │ doador_id (FK)    │       ┌──────────────────┐
+┌──────────────┐         │ beneficiario_id   │       │   candidaturas   │
+│   usuarios   │◄────────│──────────────────│       │──────────────────│
+│──────────────│         └──────────────────┘       │ id (PK)          │
+│ id (PK)      │                                ┌───►│ item_id (FK)     │
+│ nome         │◄───────────────────────────────┘   │ usuario_id (FK)  │
+│ email        │                                     │ justificativa    │
+│ senha_hash   │       ┌──────────────────┐          │ status           │
+│ tipo         │       │  notificacoes    │          └──────────────────┘
+│ avatar_sigla │◄──────│ usuario_id (FK)  │
+│ cidade / cep │       │ tipo             │
+│ ativo        │       │ mensagem         │
+└──────────────┘       │ item_id (FK)     │
+                       │ lida             │
+                       └──────────────────┘
 ```
 
 ### 5.2 Tabelas
 
-#### `categorias`
-| Campo | Tipo | Descrição |
+#### `categorias` — categorias de itens
+| Campo | Tipo | Detalhe |
 |---|---|---|
-| id | SERIAL PK | Identificador |
+| id | SERIAL PK | — |
 | nome | VARCHAR(100) | Ex: "Móveis" |
 | emoji | VARCHAR(10) | Ex: "🛋️" |
-| slug | VARCHAR(100) UNIQUE | Ex: "moveis" |
+| slug | VARCHAR(100) UNIQUE | Ex: "moveis" — usado em filtros de URL |
 
-**Dados iniciais:** Móveis, Roupas, Eletrodomésticos, Brinquedos, Livros, Outros.
+**Dados pré-carregados:** Móveis 🛋️, Roupas 👗, Eletrodomésticos 🏠, Brinquedos 🧸, Livros 📚, Outros 🔧
 
 ---
 
-#### `usuarios`
+#### `usuarios` — contas de usuários
 | Campo | Tipo | Restrição |
 |---|---|---|
 | id | SERIAL PK | — |
 | nome | VARCHAR(255) | NOT NULL |
 | email | VARCHAR(255) | UNIQUE NOT NULL |
-| senha_hash | VARCHAR(255) | NOT NULL (bcrypt, 10 rounds) |
-| tipo | VARCHAR(20) | CHECK: `doador`, `receptor`, `ambos` |
-| avatar_sigla | VARCHAR(2) | Iniciais do nome (geradas automaticamente) |
-| cidade | VARCHAR(100) | — |
-| cep | VARCHAR(10) | — |
+| senha_hash | VARCHAR(255) | bcrypt 10 rounds — nunca retornada na API |
+| tipo | VARCHAR(20) | CHECK: `doador` / `receptor` / `ambos` |
+| avatar_sigla | VARCHAR(2) | Gerada automaticamente das iniciais do nome |
+| cidade | VARCHAR(100) | Opcional |
+| cep | VARCHAR(10) | Opcional |
 | email_verificado | BOOLEAN | DEFAULT false |
 | ativo | BOOLEAN | DEFAULT true |
+| created_at / updated_at | TIMESTAMP | — |
 
 ---
 
-#### `itens`
+#### `itens` — doações publicadas
 | Campo | Tipo | Restrição |
 |---|---|---|
 | id | SERIAL PK | — |
 | titulo | VARCHAR(255) | NOT NULL |
 | descricao | TEXT | — |
-| categoria_id | INTEGER FK | → categorias |
-| estado_conservacao | VARCHAR(50) | CHECK: `novo`, `otimo`, `bom`, `reparo` |
+| categoria_id | FK | → categorias |
+| estado_conservacao | VARCHAR(50) | CHECK: `novo` / `otimo` / `bom` / `reparo` |
 | cidade | VARCHAR(100) | — |
 | cep | VARCHAR(10) | — |
-| status | VARCHAR(20) | CHECK: `disponivel`, `concluido`, `cancelado` |
-| doador_id | INTEGER FK | → usuarios NOT NULL |
-| beneficiario_id | INTEGER FK | → usuarios (preenchido ao concluir) |
+| status | VARCHAR(20) | CHECK: `disponivel` / `concluido` / `cancelado` |
+| doador_id | FK | → usuarios NOT NULL |
+| beneficiario_id | FK | → usuarios (preenchido ao concluir) |
 
 ---
 
-#### `imagens_item`
-| Campo | Tipo | Descrição |
+#### `imagens_item` — fotos dos itens
+| Campo | Tipo | Detalhe |
 |---|---|---|
 | id | SERIAL PK | — |
-| item_id | INTEGER FK | → itens ON DELETE CASCADE |
-| url | VARCHAR(500) | Caminho: `/uploads/nome_arquivo.ext` |
-| ordem | INTEGER | Ordem de exibição |
+| item_id | FK | → itens ON DELETE CASCADE |
+| url | VARCHAR(500) | Caminho `/uploads/nome_aleatorio.ext` |
+| ordem | INTEGER | Ordem de exibição na galeria |
 
 ---
 
-#### `candidaturas`
+#### `candidaturas` — interesse em receber um item
 | Campo | Tipo | Restrição |
 |---|---|---|
 | id | SERIAL PK | — |
-| item_id | INTEGER FK | → itens ON DELETE CASCADE |
-| usuario_id | INTEGER FK | → usuarios |
+| item_id | FK | → itens ON DELETE CASCADE |
+| usuario_id | FK | → usuarios |
 | justificativa | TEXT | Mínimo 20 caracteres |
-| status | VARCHAR(20) | CHECK: `pendente`, `selecionado`, `rejeitado` |
-| — | UNIQUE | (item_id, usuario_id) — um usuário por item |
+| status | VARCHAR(20) | CHECK: `pendente` / `selecionado` / `rejeitado` |
+| — | UNIQUE | (item_id, usuario_id) — um usuário só pode candidatar uma vez por item |
 
 ---
 
-#### `notificacoes`
-| Campo | Tipo | Descrição |
+#### `notificacoes` — avisos internos
+| Campo | Tipo | Detalhe |
 |---|---|---|
 | id | SERIAL PK | — |
-| usuario_id | INTEGER FK | Destinatário |
-| tipo | VARCHAR(50) | `candidatura_recebida`, `selecionado`, `rejeitado` |
-| mensagem | TEXT | Texto exibido |
-| item_id | INTEGER FK | Item relacionado |
+| usuario_id | FK | Destinatário |
+| tipo | VARCHAR(50) | `candidatura_recebida` / `selecionado` / `rejeitado` |
+| mensagem | TEXT | Texto exibido ao usuário |
+| item_id | FK | Item relacionado |
 | lida | BOOLEAN | DEFAULT false |
+
+### 5.3 Índices criados
+
+```sql
+CREATE INDEX idx_itens_status      ON itens(status);
+CREATE INDEX idx_itens_categoria   ON itens(categoria_id);
+CREATE INDEX idx_itens_doador      ON itens(doador_id);
+CREATE INDEX idx_itens_cidade      ON itens(cidade);
+CREATE INDEX idx_candidaturas_item ON candidaturas(item_id);
+CREATE INDEX idx_candidaturas_user ON candidaturas(usuario_id);
+CREATE INDEX idx_notif_usuario     ON notificacoes(usuario_id);
+CREATE INDEX idx_notif_lida        ON notificacoes(lida);
+```
 
 ---
 
 ## 6. API REST
 
-**Base URL:** `https://doarecuidar.com.br/api`
-
-### 6.1 Autenticação
+**Base URL em produção:** `https://doarecuidar.com.br/api`
 
 Rotas protegidas exigem o header:
 ```
 Authorization: Bearer <token_jwt>
 ```
-O token tem validade de **7 dias** e é gerado com `jsonwebtoken` usando o `JWT_SECRET` do ambiente.
 
----
-
-### 6.2 Endpoints
-
-#### Autenticação — `/api/auth`
+### 6.1 Autenticação — `/api/auth`
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| POST | `/auth/register` | Não | Cadastrar novo usuário |
-| POST | `/auth/login` | Não | Login — retorna token |
-| GET | `/auth/me` | Sim | Dados do usuário autenticado |
+| POST | `/auth/register` | Não | Cadastrar usuário |
+| POST | `/auth/login` | Não | Login — retorna token JWT |
+| GET | `/auth/me` | Sim | Dados do usuário logado |
 
-**POST /auth/register — Body:**
+**POST /auth/register**
 ```json
-{
-  "nome": "Maria Silva",
-  "email": "maria@email.com",
-  "senha": "minimo8chars",
-  "tipo": "ambos"
-}
-```
-**Resposta 201:**
-```json
-{
-  "user": { "id": 1, "nome": "Maria Silva", "avatar_sigla": "MS", ... },
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}
+// Body
+{ "nome": "Maria Silva", "email": "maria@email.com", "senha": "minimo8chars", "tipo": "ambos" }
+
+// Resposta 201
+{ "user": { "id": 1, "nome": "Maria Silva", "avatar_sigla": "MS", "tipo": "ambos" }, "token": "eyJ..." }
 ```
 
-**POST /auth/login — Body:**
+**POST /auth/login**
 ```json
+// Body
 { "email": "maria@email.com", "senha": "minimo8chars" }
+
+// Resposta 200 — mesmo formato do register
 ```
-**Resposta 200:** mesmo formato do register.
 
 ---
 
-#### Itens — `/api/itens`
+### 6.2 Itens — `/api/itens`
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| GET | `/itens` | Não | Listar itens disponíveis (com filtros) |
-| GET | `/itens/meus` | Sim | Itens do doador autenticado |
+| GET | `/itens` | Não | Listar itens disponíveis com filtros |
+| GET | `/itens/meus` | Sim | Itens publicados pelo usuário logado |
 | GET | `/itens/:id` | Não | Detalhe do item + array de imagens |
-| POST | `/itens` | Sim | Criar novo item |
-| PUT | `/itens/:id` | Sim | Editar item (apenas o próprio doador) |
-| PATCH | `/itens/:id/encerrar` | Sim | Cancelar item |
+| POST | `/itens` | Sim | Publicar novo item |
+| PUT | `/itens/:id` | Sim | Editar item (somente o próprio doador) |
+| PATCH | `/itens/:id/encerrar` | Sim | Cancelar item (status → `cancelado`) |
 | POST | `/itens/:id/imagens` | Sim | Upload de foto (multipart/form-data) |
-| DELETE | `/itens/:id/imagens/:imgId` | Sim | Remover foto |
+| DELETE | `/itens/:id/imagens/:imgId` | Sim | Remover foto do item |
 
-**GET /itens — Query params opcionais:**
+**GET /itens — Query parameters:**
 
-| Param | Tipo | Exemplo |
+| Parâmetro | Exemplo | Descrição |
 |---|---|---|
-| cat | string | `moveis` |
-| estado | string | `novo` |
-| cidade | string | `Vila Velha` |
-| q | string | `sofá` (busca título e descrição) |
-| sort | string | `recentes` \| `candidatos` \| `az` |
+| q | `sofá` | Busca no título e descrição |
+| cat | `moveis` | Filtro por slug da categoria |
+| estado | `novo` | Filtro por estado de conservação |
+| cidade | `Vila Velha` | Filtro por cidade (ILIKE) |
+| sort | `recentes` | Ordenação: `recentes` / `candidatos` / `az` |
 
 **GET /itens/:id — Resposta:**
 ```json
 {
   "id": 1,
-  "titulo": "Sofá 3 lugares",
-  "descricao": "...",
-  "estado_conservacao": "bom",
+  "titulo": "Sofá 3 lugares bege",
+  "descricao": "Em ótimo estado, sem manchas.",
+  "estado_conservacao": "otimo",
   "cidade": "Vila Velha",
   "status": "disponivel",
   "categoria_nome": "Móveis",
@@ -372,238 +358,194 @@ O token tem validade de **7 dias** e é gerado com `jsonwebtoken` usando o `JWT_
   "doador_sigla": "JS",
   "total_candidatos": 3,
   "imagens": [
-    { "id": 1, "url": "/uploads/abc123.jpg", "ordem": 0 },
-    { "id": 2, "url": "/uploads/def456.webp", "ordem": 1 }
+    { "id": 1, "url": "/uploads/abc123def.webp", "ordem": 0 },
+    { "id": 2, "url": "/uploads/xyz456ghi.jpg",  "ordem": 1 }
   ]
 }
 ```
 
-**POST /itens/:id/imagens — multipart/form-data:**
-- Campo: `foto`
+**POST /itens/:id/imagens:**
+- Content-Type: `multipart/form-data`
+- Campo do arquivo: `foto`
 - Formatos aceitos: JPG, JPEG, PNG, WEBP
 - Tamanho máximo: 8 MB por arquivo
-- Limite: 5 imagens por item
+- Limite por item: 5 fotos
 
 ---
 
-#### Candidaturas — `/api/candidaturas`
+### 6.3 Candidaturas — `/api/candidaturas`
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| GET | `/candidaturas/minhas` | Sim | Candidaturas do usuário |
-| GET | `/candidaturas/item/:itemId` | Sim (doador) | Candidaturas de um item |
-| POST | `/candidaturas` | Sim | Candidatar a um item |
+| GET | `/candidaturas/minhas` | Sim | Candidaturas feitas pelo usuário logado |
+| GET | `/candidaturas/item/:itemId` | Sim (doador) | Candidaturas recebidas por um item |
+| POST | `/candidaturas` | Sim | Candidatar-se a um item |
 | PATCH | `/candidaturas/:id/selecionar` | Sim (doador) | Selecionar beneficiário |
 
-**POST /candidaturas — Body:**
+**POST /candidaturas**
 ```json
+// Body
 { "item_id": 1, "justificativa": "Preciso deste item porque..." }
 ```
-Ao selecionar um beneficiário (`PATCH /selecionar`), o sistema automaticamente:
-- Marca o item com `status = 'concluido'`
-- Rejeita as demais candidaturas (`status = 'rejeitado'`)
-- Envia notificação interna ao selecionado
+
+Ao selecionar (`PATCH /selecionar`), o sistema automaticamente:
+1. Define o item como `status = 'concluido'`
+2. Marca as demais candidaturas como `rejeitado`
+3. Cria notificação interna para o selecionado
 
 ---
 
-#### Usuários — `/api/usuarios`
+### 6.4 Usuários — `/api/usuarios`
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | GET | `/usuarios/perfil` | Sim | Dados do perfil |
-| PUT | `/usuarios/perfil` | Sim | Atualizar nome, cidade, CEP |
+| PUT | `/usuarios/perfil` | Sim | Atualizar nome, cidade e CEP |
 | GET | `/usuarios/estatisticas` | Sim | Doações realizadas, recebidas, candidaturas |
 | GET | `/usuarios/notificacoes` | Sim | Últimas 50 notificações |
 | PATCH | `/usuarios/notificacoes/lidas` | Sim | Marcar todas como lidas |
 
 ---
 
-#### Categorias — `/api/categorias`
+### 6.5 Categorias — `/api/categorias`
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| GET | `/categorias` | Não | Lista todas as categorias |
+| GET | `/categorias` | Não | Lista todas as categorias com emoji e slug |
 
 ---
 
-#### Health Check
+### 6.6 Health Check
 
-| Método | Rota | Descrição |
+| Método | Rota | Resposta |
 |---|---|---|
-| GET | `/health` | Verifica se a API está no ar |
-
-**Resposta:** `{ "status": "ok", "ts": "2026-06-13T00:00:00.000Z" }`
+| GET | `/health` | `{ "status": "ok", "ts": "2026-06-13T..." }` |
 
 ---
 
 ## 7. Autenticação e Segurança
 
-### 7.1 Fluxo de Autenticação
+### 7.1 Fluxo de Login / Cadastro
 
 ```
-Cliente                         Backend
-  │                               │
-  │  POST /auth/register          │
-  │  { nome, email, senha, tipo } │
-  │──────────────────────────────►│
-  │                               │ bcrypt.hash(senha, 10)
-  │                               │ INSERT INTO usuarios
-  │                               │ jwt.sign({ id }, secret, 7d)
-  │◄──────────────────────────────│
-  │  { user, token }              │
-  │                               │
-  │  localStorage.setItem(        │
-  │    'dec_token', token)        │
-  │                               │
-  │  GET /auth/me                 │
-  │  Authorization: Bearer token  │
-  │──────────────────────────────►│
-  │                               │ jwt.verify(token, secret)
-  │                               │ SELECT * FROM usuarios WHERE id=?
-  │◄──────────────────────────────│
-  │  { id, nome, email, tipo... } │
+1. Usuário preenche formulário no frontend
+2. Frontend faz POST /api/auth/login (ou /register) com JSON
+3. Backend valida credenciais / cria conta
+4. Backend gera JWT assinado com JWT_SECRET (validade: 7 dias)
+5. Frontend recebe { user, token } e salva token no localStorage
+6. Nas próximas requisições: header Authorization: Bearer <token>
+7. Middleware auth.js valida o token e extrai req.userId
+8. Ao recarregar a página: init() faz GET /auth/me com o token salvo
+   — se válido, restaura sessão; se expirado, limpa localStorage
 ```
 
-### 7.2 Práticas de Segurança
+### 7.2 Práticas de Segurança Implementadas
 
-| Prática | Implementação |
+| Prática | Como foi feito |
 |---|---|
-| Hash de senhas | bcryptjs com 10 rounds de salt |
-| Autenticação stateless | JWT com expiração de 7 dias |
-| Autorização por recurso | Queries com `AND doador_id = req.userId` |
-| Nomes de arquivo randômicos | `crypto.randomBytes(16).toString('hex')` — evita enumeração |
-| Limite de tamanho de upload | 8 MB por arquivo (Multer + Nginx) |
-| Validação de tipo de arquivo | Filtro por extensão no Multer |
-| Sem dados sensíveis no token | JWT contém apenas `{ id }` |
-| Senhas nunca retornadas | `senha_hash` excluída em todas as queries de leitura |
-| SQL Injection | Prevenido com queries parametrizadas (`$1`, `$2`...) |
+| Hash de senhas | bcryptjs com 10 rounds — nunca armazenado em texto puro |
+| JWT sem dados sensíveis | Token contém apenas `{ id: usuario.id }` |
+| Autenticação stateless | Sem sessão no servidor; tudo via token |
+| Autorização por recurso | Queries com `AND doador_id = req.userId` — usuário só altera o próprio |
+| Nome de arquivo randômico | `crypto.randomBytes(16).toString('hex')` — impede enumeração de fotos |
+| Validação de tipo de arquivo | Multer filtra por extensão antes de salvar |
+| Limite de tamanho de upload | 8 MB por arquivo (Multer) + 20 MB body (Nginx) |
+| SQL Injection | Prevenido com queries parametrizadas (`$1`, `$2`, ...) |
+| CORS | Habilitado via pacote `cors` no Express |
 
 ---
 
-## 8. Upload e Armazenamento de Fotos
+## 8. Upload e Serving de Fotos
 
-### 8.1 Fluxo de Upload
-
-```
-Frontend                     Backend (dec-backend)        Disco
-   │                               │                        │
-   │  1. Usuário seleciona fotos   │                        │
-   │     (input type=file)         │                        │
-   │                               │                        │
-   │  2. POST /api/itens (JSON)    │                        │
-   │──────────────────────────────►│                        │
-   │◄──────────────────────────────│                        │
-   │  { id: 42, ... }              │                        │
-   │                               │                        │
-   │  3. Para cada foto:           │                        │
-   │  POST /api/itens/42/imagens   │                        │
-   │  Content-Type: multipart/...  │                        │
-   │  campo: "foto"                │                        │
-   │──────────────────────────────►│                        │
-   │                               │ multer salva arquivo   │
-   │                               │──────────────────────►│
-   │                               │ /app/uploads/abc.webp  │
-   │                               │                        │
-   │                               │ INSERT INTO imagens_item
-   │                               │ url = '/uploads/abc.webp'
-   │◄──────────────────────────────│                        │
-   │  { id, url, ordem }           │                        │
-```
-
-### 8.2 Serving das Fotos
-
-As fotos são servidas diretamente pelo Nginx, sem passar pelo backend Node.js:
+### 8.1 Fluxo Completo de Upload
 
 ```
-https://doarecuidar.com.br/uploads/abc123.webp
-                                │
-                        dec-nginx serve do volume
-                        doarecuidar_uploads montado em /uploads
-                        Cache-Control: public, max-age=2592000
+Frontend (navegador)
+  1. Usuário clica na área de upload → abre seletor de arquivo nativo do SO
+  2. Arquivos selecionados ficam em memória (array fotosParaEnviar)
+  3. Prévia imediata exibida via URL.createObjectURL()
+  4. Usuário clica em "Publicar":
+     a. POST /api/itens → cria o item → recebe { id: 42 }
+     b. Para cada arquivo: POST /api/itens/42/imagens (FormData)
+
+Backend (dec-backend)
+  5. Multer intercepta a requisição multipart
+  6. Salva o arquivo em /app/uploads/<hash-aleatório>.<ext>
+  7. Registra no banco: INSERT INTO imagens_item (item_id, url, ordem)
+  8. Retorna { id, url: "/uploads/abc123.webp", ordem }
+
+Serving (dec-nginx)
+  9. GET /uploads/abc123.webp → servido diretamente do volume Docker
+     sem passar pelo Node.js
+     Cache-Control: public, max-age=2592000 (30 dias)
 ```
+
+### 8.2 Volume Compartilhado
+
+O volume Docker `doarecuidar_uploads` é montado em dois containers:
+- **dec-backend** em `/app/uploads` → Multer grava os arquivos aqui
+- **dec-nginx** em `/uploads` (somente leitura) → Nginx serve os arquivos daqui
+
+Isso garante que as fotos persistam mesmo que os containers sejam reiniciados ou recriados.
 
 ---
 
-## 9. Configurações de Ambiente
+## 9. Frontend — Telas e Funcionalidades
 
-### 9.1 Variáveis de Ambiente (`.env`)
+O frontend é uma **SPA (Single Page Application)** implementada em um único arquivo `index.html`. A navegação entre telas é feita por JavaScript, mostrando e ocultando seções sem recarregar a página.
 
-| Variável | Exemplo | Descrição |
+### 9.1 Telas Implementadas
+
+| Tela | Acesso | Funcionalidade |
 |---|---|---|
-| `DB_HOST` | `camilassilvapsi-db-1` | Hostname do PostgreSQL |
-| `DB_PORT` | `5432` | Porta padrão PostgreSQL |
-| `DB_NAME` | `dec` | Nome do banco |
-| `DB_USER` | `postgres` | Usuário do banco |
-| `DB_PASSWORD` | `***` | Senha do banco |
-| `JWT_SECRET` | `string aleatória longa` | Chave de assinatura JWT |
-| `PORT` | `3000` | Porta do servidor Node.js |
+| **Landing** | Público | Página inicial: hero com estatísticas reais, "como funciona", prévia das últimas 4 doações do banco, CTA de cadastro |
+| **Feed / Explorar** | Público | Lista todos os itens `disponivel` com busca por texto, filtros de categoria, estado de conservação, cidade e ordenação |
+| **Detalhe do item** | Público | Foto principal + galeria de miniaturas clicáveis, informações completas, botão de candidatura para receptores, opções de editar/encerrar para o próprio doador |
+| **Auth** | Público | Formulários de login e cadastro em abas; validações no frontend; conectado ao backend real |
+| **Publicar** | Logado | Wizard de 3 passos: (1) dados do item, (2) upload de até 5 fotos reais com prévia, (3) revisão e publicação |
+| **Meus Itens (Painel)** | Logado | Lista as doações publicadas pelo usuário com status, candidaturas, opção de encerrar e editar cada item |
+| **Perfil** | Logado | 3 abas: "Minhas doações" (histórico completo), "Candidaturas" (itens em que demonstrou interesse) e "Configurações" (editar nome, cidade, CEP) |
+| **Dashboard** | Logado | KPIs e tabelas de atividade da plataforma |
 
-### 9.2 Nginx — Configuração Principal
+### 9.2 Design System
 
-```nginx
-server {
-    listen 80;
-    server_name doarecuidar.com.br www.doarecuidar.com.br;
-    client_max_body_size 20m;
+Toda a identidade visual é definida por **CSS Custom Properties** (variáveis):
 
-    location /uploads/ {            # fotos: servidas do volume Docker
-        alias /uploads/;
-        expires 30d;
-    }
-
-    location / {                    # frontend SPA
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {                # proxy para Node.js
-        proxy_pass http://backend:3000;
-    }
-}
-```
-
----
-
-## 10. Frontend — Estrutura e Telas
-
-O frontend é uma **Single Page Application (SPA)** em arquivo único (`index.html`), sem framework. A navegação é feita por JavaScript, mostrando/ocultando seções.
-
-### 10.1 Telas Disponíveis
-
-| ID da tela | Acesso | Descrição |
+| Variável | Valor | Uso |
 |---|---|---|
-| `landing` | Público | Página inicial com hero, estatísticas e cards de prévia |
-| `feed` | Público | Feed completo com busca e filtros |
-| `detalhe` | Público | Detalhe do item com galeria de fotos |
-| `auth` | Público | Formulários de login e cadastro |
-| `publicar` | Logado | Wizard 3 passos para publicar doação |
-| `painel` | Logado | Painel do doador com seus anúncios |
-| `perfil` | Logado | Perfil e histórico de candidaturas |
-| `dashboard` | Logado | KPIs e atividade da plataforma |
+| `--verde` | `#1B7A4A` | Cor primária — botões, destaques |
+| `--verde2` | `#25A065` | Verde hover |
+| `--verde3` | `#E8F5EE` | Verde claro — fundos, badges |
+| `--terra` | `#C85A1A` | Alertas, encerrar, erros |
+| `--creme` | `#FAF8F4` | Fundo geral da página |
+| `--preto` | `#1A1A16` | Textos principais |
+| `--fonte` | `'Sora'` | Títulos e headings |
+| `--fonte2` | `'DM Sans'` | Corpo de texto e labels |
 
-### 10.2 Gerenciamento de Estado
+Layout responsivo com breakpoints em `768px` e `480px` para mobile.
+
+### 9.3 Estado Global da Aplicação
 
 ```javascript
-// Estado global da aplicação
-let token    = localStorage.getItem('dec_token') || null;
-let usuario  = null;           // objeto do usuário autenticado
-let categoriasMap = {};        // id → { id, nome, emoji, slug }
-let itemAtual     = null;      // item sendo visualizado
-let fotosParaEnviar = [];      // arquivos selecionados para upload
+let token         = localStorage.getItem('dec_token') || null; // JWT
+let usuario       = null;        // objeto do usuário autenticado
+let categoriasMap = {};          // id → { id, nome, emoji, slug }
+let itemAtual     = null;        // item sendo visualizado no detalhe
+let telaAnterior  = 'feed';      // para navegação de "voltar"
+let pubStepAtual  = 1;           // step atual do wizard de publicação
+let fotosParaEnviar = [];        // File[] selecionados para upload
+let feedTimeout   = null;        // debounce da busca no feed
 ```
 
-### 10.3 Comunicação com a API
+### 9.4 Comunicação com a API
 
-Toda comunicação usa uma função utilitária centralizada:
+Toda requisição JSON passa pela função centralizada:
 
 ```javascript
 async function api(method, path, body) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' }
-  };
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body !== undefined) opts.body = JSON.stringify(body);
-
   const res  = await fetch('/api' + path, opts);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Erro ' + res.status);
@@ -611,149 +553,204 @@ async function api(method, path, body) {
 }
 ```
 
-Uploads de foto usam `fetch` com `FormData` diretamente (sem a função `api`), pois não se define `Content-Type` manualmente no multipart.
+Upload de fotos usa `fetch` + `FormData` diretamente (sem definir `Content-Type` manualmente, pois o navegador insere o `boundary` do multipart automaticamente).
 
-### 10.4 Design System
+### 9.5 Navbar com Dropdown de Usuário
 
-O CSS usa **Custom Properties** (variáveis CSS) como design tokens:
+Quando logado, o avatar (iniciais do nome) no canto superior direito abre um dropdown com:
+- **👤 Meu perfil** → navega para a tela de perfil
+- **🚪 Sair da conta** → limpa token do localStorage e retorna à landing
 
-| Variável | Valor | Uso |
-|---|---|---|
-| `--verde` | `#1B7A4A` | Cor primária |
-| `--verde2` | `#2E9D63` | Verde hover |
-| `--verde3` | `#E8F5EE` | Verde claro (fundo) |
-| `--terra` | `#B5451B` | Alertas e encerrar |
-| `--preto` | `#1A1A18` | Textos principais |
-| `--fonte` | `'Playfair Display'` | Títulos |
-| `--fonte2` | `'Inter'` | Corpo |
+Clicar fora do menu o fecha automaticamente (listener no `document`).
+
+### 9.6 Proteção de Rotas
+
+A função `ir(tela)` bloqueia o acesso às telas protegidas:
+
+```javascript
+function ir(tela) {
+  if (['painel','publicar','perfil','dashboard'].includes(tela) && !usuario) {
+    mostrarAuth('login'); return;
+  }
+  // ... renderiza a tela
+}
+```
 
 ---
 
-## 11. Docker e Deploy
+## 10. Configuração de Ambiente
 
-### 11.1 Docker Compose
+### 10.1 Variáveis de Ambiente (`.env`)
+
+| Variável | Exemplo | Descrição |
+|---|---|---|
+| `DB_HOST` | `camilassilvapsi-db-1` | Hostname do container PostgreSQL |
+| `DB_PORT` | `5432` | Porta padrão do PostgreSQL |
+| `DB_NAME` | `dec` | Nome do banco de dados |
+| `DB_USER` | `postgres` | Usuário do banco |
+| `DB_PASSWORD` | `***` | Senha do banco |
+| `JWT_SECRET` | `string longa e aleatória` | Chave de assinatura dos tokens JWT |
+| `PORT` | `3000` | Porta interna do servidor Node.js |
+
+### 10.2 Nginx — nginx.conf
+
+```nginx
+server {
+    listen 80;
+    server_name doarecuidar.com.br www.doarecuidar.com.br;
+    client_max_body_size 20m;
+
+    # Fotos: servidas direto do volume, sem passar pelo Node.js
+    location /uploads/ {
+        alias /uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Frontend SPA
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API — proxy para Node.js
+    location /api/ {
+        client_max_body_size 20m;
+        proxy_pass http://backend:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 60s;
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json;
+}
+```
+
+### 10.3 Docker Compose
 
 ```yaml
 services:
-  backend:                         # API Node.js
-    build: ./backend
+  backend:
+    build: ./backend            # Dockerfile com Node.js 20 Alpine
     container_name: dec-backend
+    restart: unless-stopped
+    env_file: .env
     volumes:
-      - uploads:/app/uploads       # persiste fotos
-    networks:
-      - dec-net
-      - dec-db-shared
+      - uploads:/app/uploads    # fotos persistidas
+    networks: [dec-net, dec-db-shared]
+    healthcheck:
+      test: wget -qO- http://localhost:3000/api/health
 
-  nginx:                           # Servidor web
+  nginx:
     image: nginx:1.27-alpine
     container_name: dec-nginx
+    restart: unless-stopped
     volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./frontend:/usr/share/nginx/html:ro
-      - uploads:/uploads:ro        # serve fotos diretamente
-    networks:
-      - dec-net
-      - dec-web-shared
+      - uploads:/uploads:ro     # serve as fotos
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [dec-net, dec-web-shared]
 
 volumes:
-  uploads:                         # volume nomeado — persiste reinicializações
+  uploads:    # volume nomeado — persiste reinicializações e rebuilds
 ```
 
-### 11.2 Dockerfile do Backend
+### 10.4 Dockerfile do Backend
 
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --omit=dev         # sem devDependencies em produção
+RUN npm install --omit=dev     # sem devDependencies em produção
 COPY src/ ./src/
 EXPOSE 3000
 CMD ["node", "src/app.js"]
 ```
 
-### 11.3 Processo de Deploy
-
-1. Desenvolver localmente e fazer commit/push para o GitHub
-2. No servidor: `cd /opt/doarecuidar && git pull`
-3. Para mudanças de backend: `docker compose up -d --build --no-deps backend`
-4. Para mudanças de frontend: apenas o `git pull` já é suficiente (volume montado `:ro`)
-5. Para mudanças de nginx: `docker compose up -d --no-deps nginx` + reconectar à rede
-
 ---
 
-## 12. Dependências do Projeto
+## 11. Processo de Deploy
 
-### Backend (`package.json`)
+O projeto usa um fluxo simples baseado em Git:
 
-```json
-{
-  "dependencies": {
-    "bcryptjs":    "^2.4.3",   // hash de senhas
-    "cors":        "^2.8.5",   // headers CORS
-    "dotenv":      "^16.4.5",  // variáveis de ambiente
-    "express":     "^4.19.2",  // framework HTTP
-    "jsonwebtoken":"^9.0.2",   // autenticação JWT
-    "multer":      "^2.0.0",   // upload de arquivos multipart
-    "pg":          "^8.12.0"   // client PostgreSQL
-  },
-  "devDependencies": {
-    "nodemon":     "^3.1.4"    // hot-reload em desenvolvimento
-  }
-}
+```
+Desenvolvedor (local)          Servidor (38.199.208.34)
+      │                                │
+      │  git commit + push             │
+      │──────────────────────────────►│
+      │                               │
+      │              cd /opt/doarecuidar && git pull
+      │
+      │  Mudança no frontend?  → Apenas git pull (nginx serve via volume montado)
+      │  Mudança no backend?   → git pull + docker compose up -d --build --no-deps backend
+      │  Mudança no nginx.conf → git pull + docker compose up -d --no-deps nginx
 ```
 
-### Frontend
-
-Não possui dependências de pacotes. Utiliza apenas:
-- **Google Fonts** (Playfair Display + Inter) via CDN
-- APIs nativas do navegador (`fetch`, `localStorage`, `FormData`, `URL.createObjectURL`)
-
 ---
 
-## 13. Modelo de Negócio e Fluxos Principais
-
-### Fluxo de Doação Completo
+## 12. Fluxo Completo de uma Doação
 
 ```
 Doador                          Sistema                         Receptor
   │                               │                               │
-  │  1. Cadastra item             │                               │
-  │     (título, categoria,       │                               │
-  │      estado, fotos)           │                               │
+  │ 1. Cadastra conta             │                               │
+  │    POST /auth/register        │                               │
   │──────────────────────────────►│                               │
-  │                               │  Item status: 'disponivel'    │
+  │◄──────────────────────────────│                               │
+  │    { user, token }            │                               │
+  │                               │                               │
+  │ 2. Publica item + fotos       │                               │
+  │    POST /itens                │                               │
+  │    POST /itens/1/imagens (x5) │                               │
+  │──────────────────────────────►│                               │
+  │                               │  status: 'disponivel'         │
+  │                               │  fotos salvas em /uploads/    │
   │                               │                               │
   │                               │◄──────────────────────────────│
-  │                               │  2. Receptor se candidata     │
-  │                               │     com justificativa         │
+  │                               │  3. Receptor se candidata     │
+  │                               │     POST /candidaturas        │
+  │                               │     { item_id, justificativa }│
   │                               │                               │
   │◄──────────────────────────────│                               │
-  │  3. Recebe notificação        │                               │
-  │     de candidatura            │                               │
+  │ 4. Recebe notificação interna │                               │
+  │    "Nova candidatura para..." │                               │
   │                               │                               │
-  │  4. Visualiza candidaturas    │                               │
-  │     e seleciona beneficiário  │                               │
+  │ 5. Visualiza candidaturas     │                               │
+  │    GET /candidaturas/item/1   │                               │
   │──────────────────────────────►│                               │
-  │                               │  Item status: 'concluido'     │
-  │                               │  Outros candidatos: rejeitado │
+  │◄──────────────────────────────│                               │
+  │    [ { usuario, justif... } ] │                               │
   │                               │                               │
+  │ 6. Seleciona beneficiário     │                               │
+  │    PATCH /candidaturas/3/     │                               │
+  │         selecionar            │                               │
+  │──────────────────────────────►│                               │
+  │                               │  item → 'concluido'           │
+  │                               │  outros → 'rejeitado'         │
   │                               │──────────────────────────────►│
-  │                               │  5. Notificação de seleção    │
+  │                               │  7. Notificação:              │
+  │                               │     "Você foi selecionado!"   │
 ```
 
 ---
 
-## 14. Limitações Atuais e Evoluções Previstas
+## 13. Limitações Atuais e Evoluções Possíveis
 
-| Item | Status | Observação |
+| Funcionalidade | Status | Observação |
 |---|---|---|
-| Verificação de e-mail | Não implementado | Campo `email_verificado` existe no banco |
-| Chat entre doador e receptor | Não implementado | Necessário para combinar entrega |
-| Busca geográfica (raio em km) | Não implementado | Filtro atual é por nome de cidade |
-| Moderação de anúncios | Não implementado | Qualquer conteúdo pode ser publicado |
-| Avaliação pós-doação | Não implementado | Melhoraria confiança na plataforma |
-| App mobile | Não implementado | API REST já está preparada para consumo |
-| Estatísticas do dashboard | Parcial | Estrutura existe, falta endpoint de admin |
+| Verificação de e-mail | Pendente | Campo `email_verificado` já existe no banco |
+| Chat interno doador ↔ receptor | Pendente | Necessário para combinar a entrega |
+| Notificação em tempo real | Pendente | Atualmente as notificações são consultadas sob demanda |
+| Busca geográfica por raio (km) | Pendente | Filtro atual é por nome de cidade |
+| Moderação de conteúdo | Pendente | Qualquer item pode ser publicado sem aprovação |
+| Avaliação pós-doação | Pendente | Melhoraria reputação e confiança |
+| App mobile nativo | Pendente | A API REST já está pronta para consumo por apps |
+| Dashboard com dados reais | Parcial | Estrutura HTML/CSS existe; falta endpoint de estatísticas administrativas |
+| Hero stats com dados reais | Parcial | IDs existem no HTML; falta endpoint público de contagens |
 
 ---
 
-*Documentação gerada em 13 de junho de 2026.*
+*Documentação produzida em 13 de junho de 2026 — reflete o estado atual do sistema em produção.*
