@@ -909,6 +909,7 @@ async function api(method, path, body) {
 
 // ── NAVEGAÇÃO ────────────────────────────────────────────────
 function ir(tela) {
+  fecharMobileMenu();
   if (['painel','publicar','perfil','dashboard'].includes(tela) && !usuario) {
     mostrarAuth('login'); return;
   }
