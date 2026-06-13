@@ -1,6 +1,8 @@
-const bcrypt = require('bcryptjs');
-const jwt    = require('jsonwebtoken');
-const pool   = require('../config/db');
+const bcrypt  = require('bcryptjs');
+const crypto  = require('crypto');
+const jwt     = require('jsonwebtoken');
+const pool    = require('../config/db');
+const { enviarEmailVerificacao } = require('../config/email');
 
 const register = async (req, res, next) => {
   try {
