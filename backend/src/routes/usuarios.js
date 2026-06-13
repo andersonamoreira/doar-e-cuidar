@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { perfil, atualizar, estatisticas, notificacoes, marcarNotifLida } = require('../controllers/usuarios');
+const { perfil, atualizar, estatisticas, notificacoes, marcarNotifLida, trocarSenha } = require('../controllers/usuarios');
 const auth = require('../middleware/auth');
 
 router.get('/perfil',        auth, perfil);
