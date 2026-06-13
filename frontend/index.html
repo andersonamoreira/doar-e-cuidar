@@ -825,8 +825,8 @@ let usuario    = null;
 let categoriasMap = {};   // id → { id, nome, emoji, slug }
 let itemAtual  = null;
 let telaAnterior  = 'feed';
-let pubStepAtual  = 1;
-let uploadCount   = 0;
+let pubStepAtual    = 1;
+let fotosParaEnviar = []; // Array de File objects
 let feedTimeout   = null;
 
 // ── API HELPER ───────────────────────────────────────────────
