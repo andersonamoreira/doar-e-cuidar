@@ -74,6 +74,11 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .nav-link:hover,.nav-link.active{background:var(--verde3);color:var(--verde)}
 .nav-avatar{width:36px;height:36px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.867rem;cursor:pointer;border:none;font-family:var(--fonte2);transition:var(--trans)}
 .nav-avatar:hover{background:#155f39}
+.nav-avatar-wrap{position:relative}
+.nav-avatar-menu{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--cinza2);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:170px;padding:6px;display:none;z-index:9999;flex-direction:column;gap:2px}
+.nav-avatar-menu.aberto{display:flex}
+.nav-avatar-menu button{background:none;border:none;padding:9px 12px;border-radius:7px;cursor:pointer;font-size:.875rem;text-align:left;color:var(--cinza5);font-family:var(--fonte2);transition:background .15s}
+.nav-avatar-menu button:hover{background:var(--cinza1)}
 .nav-mobile{display:none}
 
 /* ── TELAS ── */
