@@ -1,4 +1,5 @@
-const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
+const pool   = require('../config/db');
 
 const perfil = async (req, res, next) => {
   try {
