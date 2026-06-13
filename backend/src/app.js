@@ -7,6 +7,7 @@ const itensRoutes        = require('./routes/itens');
 const candidaturasRoutes = require('./routes/candidaturas');
 const usuariosRoutes     = require('./routes/usuarios');
 const categoriasRoutes   = require('./routes/categorias');
+const statsRoutes        = require('./routes/stats');
 const errorMiddleware    = require('./middleware/error');
 
 const app = express();
