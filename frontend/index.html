@@ -1857,7 +1857,9 @@ async function perfilTab(tab, btn) {
       const SLABEL = { disponivel:'Ativo', concluido:'Concluído', cancelado:'Encerrado' };
       content.innerHTML = `<div style="display:grid;gap:12px">${itens.map(i => `
         <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;display:flex;align-items:center;gap:16px">
-          <div style="width:56px;height:56px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${i.categoria_emoji || '📦'}</div>
+          ${i.imagem_principal
+            ? `<img src="${i.imagem_principal}" alt="${i.titulo}" style="width:56px;height:56px;border-radius:var(--r3);object-fit:cover;flex-shrink:0">`
+            : `<div style="width:56px;height:56px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${i.categoria_emoji || '📦'}</div>`}
           <div style="flex:1"><div class="fw700">${i.titulo}</div><div class="fs13 muted mt4">${i.cidade || ''} · ${tempoRelativo(i.created_at)}</div></div>
           <span class="badge ${SBADGE[i.status] || 'badge-cinza'}">${SLABEL[i.status] || i.status}</span>
         </div>`).join('')}</div>`;
