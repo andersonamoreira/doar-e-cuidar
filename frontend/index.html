@@ -1308,12 +1308,36 @@ function pubStep(n) {
   if (n === 3) renderRevisao();
 }
 
-function simularUpload() {
-  if (uploadCount >= 5) { toast('Máximo de 5 imagens atingido', 'terra'); return; }
-  const emojis = ['🛋️','🏠','📷','🔍','✨'];
-  document.getElementById('upload-previews').innerHTML += `<div class="upload-preview">${emojis[uploadCount]}</div>`;
-  uploadCount++;
-  toast('Foto adicionada (' + uploadCount + '/5)', 'verde');
+function onFotosSelected(input) {
+  const arquivos = Array.from(input.files);
+  const restam = 5 - fotosParaEnviar.length;
+  if (!restam) { toast('Máximo de 5 imagens atingido', 'terra'); input.value = ''; return; }
+  const novos = arquivos.slice(0, restam);
+  fotosParaEnviar.push(...novos);
+  renderFotoPreviews();
+  if (arquivos.length > restam) toast(`Apenas ${restam} foto(s) adicionada(s) — limite de 5`, 'terra');
+  else toast(novos.length + ' foto(s) adicionada(s)', 'verde');
+  input.value = '';
+}
+
+function removeFoto(idx) {
+  fotosParaEnviar.splice(idx, 1);
+  renderFotoPreviews();
+}
+
+function renderFotoPreviews() {
+  const el = document.getElementById('upload-previews');
+  if (!el) return;
+  if (!fotosParaEnviar.length) { el.innerHTML = ''; return; }
+  el.innerHTML = fotosParaEnviar.map((f, i) => {
+    const url = URL.createObjectURL(f);
+    return `<div class="upload-preview" style="position:relative;overflow:hidden">
+      <img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r3)" loading="lazy">
+      <button onclick="removeFoto(${i})" title="Remover" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`;
+  }).join('');
+  const area = document.getElementById('upload-area');
+  if (area) area.style.display = fotosParaEnviar.length >= 5 ? 'none' : '';
 }
 
 function renderRevisao() {
