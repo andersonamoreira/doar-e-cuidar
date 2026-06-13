@@ -20,6 +20,7 @@ app.use('/api/itens',        itensRoutes);
 app.use('/api/candidaturas', candidaturasRoutes);
 app.use('/api/usuarios',     usuariosRoutes);
 app.use('/api/categorias',   categoriasRoutes);
+app.use('/api/stats',        statsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', ts: new Date() }));
 
