@@ -1046,6 +1046,16 @@ function toggleAvatarMenu() {
 function fecharAvatarMenu() {
   document.getElementById('nav-avatar-menu').classList.remove('aberto');
 }
+function toggleMobileMenu() {
+  const m = document.getElementById('mobile-menu');
+  const btn = document.getElementById('nav-mobile-btn');
+  m.classList.toggle('aberto');
+  btn.textContent = m.classList.contains('aberto') ? '✕' : '☰';
+}
+function fecharMobileMenu() {
+  document.getElementById('mobile-menu').classList.remove('aberto');
+  document.getElementById('nav-mobile-btn').textContent = '☰';
+}
 document.addEventListener('click', function(e) {
   const wrap = document.getElementById('nav-avatar-wrap');
   if (wrap && !wrap.contains(e.target)) fecharAvatarMenu();
