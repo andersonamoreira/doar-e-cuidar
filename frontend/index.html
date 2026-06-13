@@ -854,7 +854,8 @@ let telaAnterior  = 'feed';
 let pubStepAtual    = 1;
 let fotosParaEnviar = []; // Array de File objects
 let feedTimeout   = null;
-let painelItens   = [];   // cache dos itens do painel para filtros
+let painelItens         = [];   // cache dos itens do painel para filtros
+let painelCandEnviadas  = [];   // cache das candidaturas enviadas pelo usuário
 
 // ── API HELPER ───────────────────────────────────────────────
 async function api(method, path, body) {
