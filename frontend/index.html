@@ -1493,14 +1493,18 @@ async function renderPainel() {
   document.getElementById('painel-filtro-wrap').style.display = 'none';
   document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('ativo'));
   try {
-    painelItens = await api('GET', '/itens/meus');
+    [painelItens, painelCandEnviadas] = await Promise.all([
+      api('GET', '/itens/meus'),
+      api('GET', '/candidaturas/minhas'),
+    ]);
     const ativos     = painelItens.filter(i => i.status === 'disponivel').length;
     const totalCands = painelItens.reduce((a, i) => a + (i.total_candidatos || 0), 0);
     const conc       = painelItens.filter(i => i.status === 'concluido').length;
-    document.getElementById('stat-total').textContent = ativos;
-    document.getElementById('stat-cands').textContent = totalCands;
-    document.getElementById('stat-conc').textContent  = conc;
-    document.getElementById('painel-count').textContent = painelItens.length + ' publicação(ões)';
+    document.getElementById('stat-total').textContent    = ativos;
+    document.getElementById('stat-cands').textContent    = totalCands;
+    document.getElementById('stat-conc').textContent     = conc;
+    document.getElementById('stat-cands-env').textContent = painelCandEnviadas.length;
+    document.getElementById('painel-count').textContent  = painelItens.length + ' publicação(ões)';
     renderGridPainel(painelItens);
   } catch(e) { grid.innerHTML = '<div style="text-align:center;padding:40px">Erro ao carregar itens.</div>'; }
 }
