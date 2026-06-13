@@ -1513,26 +1513,67 @@ function filtrarPainel(tipo) {
   document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('ativo'));
   const wrap  = document.getElementById('painel-filtro-wrap');
   const label = document.getElementById('painel-filtro-label');
-  let filtrado;
+
   if (!tipo) {
     wrap.style.display = 'none';
-    filtrado = painelItens;
-  } else {
-    const card = document.getElementById('stat-card-' + tipo);
-    if (card) card.classList.add('ativo');
-    wrap.style.display = 'flex';
-    if (tipo === 'ativos') {
-      filtrado = painelItens.filter(i => i.status === 'disponivel');
-      label.textContent = '🟢 Mostrando: itens ativos (' + filtrado.length + ')';
-    } else if (tipo === 'candidatos') {
-      filtrado = painelItens.filter(i => i.total_candidatos > 0);
-      label.textContent = '👥 Mostrando: itens com candidaturas (' + filtrado.length + ')';
-    } else if (tipo === 'concluidos') {
-      filtrado = painelItens.filter(i => i.status === 'concluido');
-      label.textContent = '✅ Mostrando: doações concluídas (' + filtrado.length + ')';
-    }
+    renderGridPainel(painelItens);
+    return;
+  }
+
+  const card = document.getElementById('stat-card-' + tipo);
+  if (card) card.classList.add('ativo');
+  wrap.style.display = 'flex';
+
+  if (tipo === 'enviadas') {
+    label.textContent = '📩 Mostrando: candidaturas enviadas (' + painelCandEnviadas.length + ')';
+    renderGridCandEnviadas(painelCandEnviadas);
+    return;
+  }
+
+  let filtrado;
+  if (tipo === 'ativos') {
+    filtrado = painelItens.filter(i => i.status === 'disponivel');
+    label.textContent = '🟢 Mostrando: itens ativos (' + filtrado.length + ')';
+  } else if (tipo === 'candidatos') {
+    filtrado = painelItens.filter(i => i.total_candidatos > 0);
+    label.textContent = '👥 Mostrando: itens com candidaturas (' + filtrado.length + ')';
+  } else if (tipo === 'concluidos') {
+    filtrado = painelItens.filter(i => i.status === 'concluido');
+    label.textContent = '✅ Mostrando: doações concluídas (' + filtrado.length + ')';
   }
   renderGridPainel(filtrado);
+}
+
+function renderGridCandEnviadas(cands) {
+  const grid = document.getElementById('meus-items-grid');
+  if (!grid) return;
+  if (!cands.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px">
+      <div style="font-size:2.4rem;margin-bottom:12px">📩</div>
+      <div class="fw600 fs16" style="color:var(--cinza4)">Nenhuma candidatura enviada ainda</div>
+      <p class="muted fs13 mt8">Explore o feed e demonstre interesse em itens disponíveis.</p>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="ir('feed')">Ver doações disponíveis</button>
+    </div>`;
+    return;
+  }
+  const SLABEL = { pendente:'⏳ Em análise', selecionado:'✅ Selecionado!', rejeitado:'❌ Não selecionado' };
+  const SBADGE = { pendente:'badge-cinza', selecionado:'badge-verde', rejeitado:'badge-cinza' };
+  const SBORDER = { selecionado:'border-color:var(--verde)', rejeitado:'', pendente:'' };
+  grid.innerHTML = `<div style="grid-column:1/-1;display:grid;gap:12px">${cands.map(c => `
+    <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;${SBORDER[c.status]||''}">
+      <div style="display:flex;align-items:start;gap:12px">
+        <div style="width:52px;height:52px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">${c.categoria_emoji || '📦'}</div>
+        <div style="flex:1;min-width:0">
+          <div class="fw700 fs14">${c.titulo || 'Item'}</div>
+          <div class="fs12 muted mt4">Candidatura enviada ${tempoRelativo(c.created_at)}</div>
+          <div style="margin-top:8px;background:var(--cinza1);border-radius:var(--r3);padding:8px 10px;font-size:.8rem;color:var(--texto2);font-style:italic;border-left:3px solid var(--cinza3)">"${c.justificativa}"</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--cinza1)">
+        <span class="badge ${SBADGE[c.status]||'badge-cinza'}">${SLABEL[c.status]||c.status}</span>
+        <button class="btn btn-ghost btn-sm" style="color:var(--verde)" onclick="abrirItem(${c.item_id})">Ver item →</button>
+      </div>
+    </div>`).join('')}</div>`;
 }
 
 function renderGridPainel(itens) {
