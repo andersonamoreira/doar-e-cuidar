@@ -660,14 +660,14 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
           <label>Descrição *</label>
           <textarea class="input" rows="4" placeholder="Descreva o item com detalhes: dimensões, cor, material, motivo da doação..." id="pub-desc"></textarea>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div class="form-group">
-            <label>Cidade</label>
-            <input type="text" class="input" placeholder="Ex: Vila Velha" id="pub-cidade">
-          </div>
+        <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:16px">
           <div class="form-group">
             <label>CEP</label>
-            <input type="text" class="input" placeholder="00000-000" id="pub-cep">
+            <input type="text" class="input" placeholder="00000-000" id="pub-cep" maxlength="9" oninput="formatarCep(this,'pub-cidade')" onblur="buscarCep(this.value,'pub-cidade')">
+          </div>
+          <div class="form-group">
+            <label>Cidade <span class="muted fs12">(preenchida pelo CEP)</span></label>
+            <input type="text" class="input" placeholder="Preenchida automaticamente" id="pub-cidade" readonly style="background:var(--cinza1);cursor:default">
           </div>
         </div>
         <button class="btn btn-primary btn-full" onclick="pubStep(2)" style="margin-top:8px">Continuar → Adicionar fotos</button>
