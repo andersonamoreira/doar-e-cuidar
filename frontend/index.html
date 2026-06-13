@@ -1367,7 +1367,7 @@ function renderRevisao() {
         <span class="muted fs13 mb4" style="display:block">Descrição</span>
         <span class="fs13" style="color:var(--texto2)">${desc}</span>
       </div>
-      ${uploadCount > 0 ? `<div style="padding:8px 0"><span class="muted fs13">Fotos</span> <span class="fw600 fs13 verde">${uploadCount} imagem(ns) adicionada(s)</span></div>` : ''}
+      ${fotosParaEnviar.length > 0 ? `<div style="padding:8px 0"><span class="muted fs13">Fotos</span> <span class="fw600 fs13 verde">${fotosParaEnviar.length} imagem(ns) selecionada(s)</span></div>` : '<div style="padding:8px 0"><span class="muted fs13">Fotos</span> <span class="fs13" style="color:var(--cinza3)">Nenhuma foto adicionada</span></div>'}
     </div>`;
 }
 
