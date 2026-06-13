@@ -906,6 +906,43 @@ function switchAuthTab(tab) {
   document.getElementById('tab-cadastro').classList.toggle('active', tab === 'cadastro');
 }
 
+// ── CEP / CIDADE ─────────────────────────────────────────────
+function formatarCep(input, cidadeId) {
+  let v = input.value.replace(/\D/g, '').substring(0, 8);
+  if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+  input.value = v;
+  if (v.replace(/\D/g, '').length === 8) buscarCep(v, cidadeId);
+}
+
+async function buscarCep(cep, cidadeId) {
+  const numeros = cep.replace(/\D/g, '');
+  if (numeros.length !== 8) return;
+  const cidadeEl = document.getElementById(cidadeId);
+  if (!cidadeEl) return;
+  const anterior = cidadeEl.value;
+  cidadeEl.removeAttribute('readonly');
+  cidadeEl.value = '';
+  cidadeEl.placeholder = 'Buscando…';
+  cidadeEl.setAttribute('readonly', '');
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + numeros + '/json/');
+    const d = await r.json();
+    if (d.erro) {
+      cidadeEl.value = '';
+      cidadeEl.placeholder = 'CEP não encontrado';
+      toast('CEP não encontrado. Verifique e tente novamente.', 'terra');
+    } else {
+      cidadeEl.value = d.localidade + ' — ' + d.uf;
+      cidadeEl.style.background = 'var(--verde3)';
+      cidadeEl.style.borderColor = 'var(--verde)';
+    }
+  } catch(e) {
+    cidadeEl.value = anterior;
+    cidadeEl.placeholder = 'Preenchida automaticamente';
+    toast('Não foi possível consultar o CEP. Verifique sua conexão.', 'terra');
+  }
+}
+
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim();
   const senha = document.getElementById('login-senha').value;
