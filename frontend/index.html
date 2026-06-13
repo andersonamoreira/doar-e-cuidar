@@ -1067,7 +1067,7 @@ async function abrirItem(id) {
   telaAnterior = document.querySelector('.tela.ativa')?.id.replace('tela-', '') || 'feed';
   ir('detalhe');
   document.getElementById('det-title').textContent = 'Carregando...';
-  document.getElementById('det-img-main').textContent = '⏳';
+  document.getElementById('det-img-main').innerHTML = '<span style="font-size:3rem">⏳</span>';
   document.getElementById('det-btn-wrap').innerHTML = '';
   document.getElementById('det-cands-wrap').innerHTML = '';
   document.getElementById('det-status-wrap').innerHTML = '';
