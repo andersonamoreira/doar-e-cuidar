@@ -1027,6 +1027,18 @@ document.addEventListener('click', function(e) {
 async function renderLanding() {
   const c = document.getElementById('cards-landing');
   if (!c) return;
+
+  // Números do hero — endpoint público, não requer login
+  fetch('/api/stats')
+    .then(r => r.json())
+    .then(s => {
+      const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+      el('hero-stat-itens',    s.kpi.itens_disponiveis);
+      el('hero-stat-doacoes',  s.kpi.itens_concluidos);
+      el('hero-stat-usuarios', s.kpi.total_usuarios);
+    })
+    .catch(() => {});
+
   try {
     const itens = await api('GET', '/itens?sort=recentes');
     c.innerHTML = itens.length
