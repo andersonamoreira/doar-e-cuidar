@@ -916,6 +916,17 @@ function logout() {
   ir('landing');
 }
 
+function toggleAvatarMenu() {
+  document.getElementById('nav-avatar-menu').classList.toggle('aberto');
+}
+function fecharAvatarMenu() {
+  document.getElementById('nav-avatar-menu').classList.remove('aberto');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('nav-avatar-wrap');
+  if (wrap && !wrap.contains(e.target)) fecharAvatarMenu();
+});
+
 // ── LANDING ──────────────────────────────────────────────────
 async function renderLanding() {
   const c = document.getElementById('cards-landing');
