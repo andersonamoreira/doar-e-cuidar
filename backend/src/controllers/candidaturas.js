@@ -27,7 +27,8 @@ const minhasCandidaturas = async (req, res, next) => {
     const { rows } = await pool.query(`
       SELECT ca.id, ca.status, ca.justificativa, ca.created_at,
         i.id AS item_id, i.titulo, i.status AS item_status,
-        c.emoji AS categoria_emoji
+        c.emoji AS categoria_emoji,
+        (SELECT url FROM imagens_item WHERE item_id = i.id ORDER BY ordem LIMIT 1) AS imagem_principal
       FROM candidaturas ca
       JOIN itens i ON i.id = ca.item_id
       LEFT JOIN categorias c ON c.id = i.categoria_id
