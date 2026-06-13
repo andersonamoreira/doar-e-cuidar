@@ -1619,22 +1619,103 @@ function renderGridPainel(itens) {
 }
 
 // ── DASHBOARD ────────────────────────────────────────────────
-function renderDash() {
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+async function renderDash() {
+  ['dash-usuarios','dash-itens','dash-conc','dash-taxa'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = '…';
+  });
+  try {
+    const s = await api('GET', '/stats');
+
+    document.getElementById('dash-usuarios').textContent = s.kpi.total_usuarios;
+    document.getElementById('dash-itens').textContent    = s.kpi.itens_disponiveis;
+    document.getElementById('dash-conc').textContent     = s.kpi.itens_concluidos;
+    document.getElementById('dash-taxa').textContent     = s.kpi.taxa_conversao + '%';
+
+    _renderDashBarras(s.por_mes);
+    _renderDashDonut(s.categorias);
+
+    const topEl = document.getElementById('dash-top-itens');
+    if (topEl) topEl.innerHTML = s.top_itens.length
+      ? s.top_itens.map(i => `<tr>
+          <td>${i.titulo}</td>
+          <td>${i.categoria_emoji || ''} ${i.categoria_nome || '—'}</td>
+          <td><strong>${i.total_candidatos}</strong></td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" style="text-align:center;color:var(--cinza3)">Sem dados ainda</td></tr>';
+
+    const atEl = document.getElementById('dash-atividade');
+    if (atEl) atEl.innerHTML = s.atividade.length
+      ? s.atividade.map(a => {
+          const icon = a.tipo === 'item' ? '📦' : '🙋';
+          const acao = a.tipo === 'item' ? 'publicou' : 'se candidatou em';
+          return `<tr>
+            <td>${icon} <strong>${a.autor}</strong> ${acao} <em>"${a.objeto}"</em></td>
+            <td style="white-space:nowrap;color:var(--cinza4)">${tempoRelativo(a.quando)}</td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="2" style="text-align:center;color:var(--cinza3)">Sem atividade ainda</td></tr>';
+
+  } catch(e) {
+    ['dash-usuarios','dash-itens','dash-conc','dash-taxa'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '—';
+    });
+  }
+}
+
+function _renderDashBarras(porMes) {
   const bc = document.getElementById('bar-chart');
   if (!bc) return;
-  bc.innerHTML = meses.map(m => `
-    <div class="bar-wrap">
-      <div class="bar-val">0</div>
-      <div class="bar" style="height:4px;background:var(--cinza2)"></div>
-      <div class="bar-label">${m}</div>
-    </div>`).join('');
-  const svg = document.getElementById('donut-svg');
-  if (!svg) return;
-  svg.innerHTML = '<circle cx="60" cy="60" r="46" fill="none" stroke="#F5F4F0" stroke-width="14"/>' +
-    '<text x="60" y="56" text-anchor="middle" font-family="Sora" font-size="16" font-weight="800" fill="#1A1A16">0%</text>' +
-    '<text x="60" y="72" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#7A7670">conversão</text>';
-  const legend = document.getElementById('donut-legend'); if (legend) legend.innerHTML = '';
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje = new Date();
+  const dados = [];
+  for (let i = 11; i >= 0; i--) {
+    const d   = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    const ano = d.getFullYear(), mes = d.getMonth() + 1;
+    const found = porMes.find(m => m.ano === ano && m.mes === mes);
+    dados.push({ label: MESES[mes - 1], total: found ? found.total : 0 });
+  }
+  const maxVal = Math.max(...dados.map(d => d.total), 1);
+  bc.innerHTML = dados.map(d => {
+    const h = Math.max(Math.round((d.total / maxVal) * 120), 4);
+    return `<div class="bar-wrap">
+      <div class="bar-val">${d.total || ''}</div>
+      <div class="bar" style="height:${h}px;background:${d.total > 0 ? 'var(--verde)' : 'var(--cinza2)'}"></div>
+      <div class="bar-label">${d.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function _renderDashDonut(categorias) {
+  const svg    = document.getElementById('donut-svg');
+  const legend = document.getElementById('donut-legend');
+  if (!svg || !legend) return;
+  const total = categorias.reduce((s, c) => s + c.total, 0);
+  if (!total) {
+    svg.innerHTML = '<circle cx="60" cy="60" r="46" fill="none" stroke="#F5F4F0" stroke-width="14"/>'
+      + '<text x="60" y="56" text-anchor="middle" font-family="Sora" font-size="16" font-weight="800" fill="#1A1A16">0</text>'
+      + '<text x="60" y="72" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#7A7670">itens</text>';
+    legend.innerHTML = ''; return;
+  }
+  const R = 46, CX = 60, CY = 60, SW = 14;
+  const circ = 2 * Math.PI * R;
+  const CORES = ['#1B7A4A','#C85A1A','#1565C0','#7B1FA2','#E65100','#00838F'];
+  let offset = 0;
+  const svgParts = ['<circle cx="60" cy="60" r="46" fill="none" stroke="#F5F4F0" stroke-width="14"/>'];
+  const legParts = [];
+  categorias.forEach((cat, i) => {
+    const pct  = cat.total / total;
+    const dash = pct * circ;
+    const cor  = CORES[i % CORES.length];
+    svgParts.push(`<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${cor}" stroke-width="${SW}" stroke-dasharray="${dash.toFixed(2)} ${circ.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" transform="rotate(-90 ${CX} ${CY})"/>`);
+    offset += dash;
+    legParts.push(`<div class="legend-item"><div class="legend-dot" style="background:${cor}"></div><span>${cat.emoji || ''} ${cat.nome}</span><span class="muted" style="margin-left:4px">(${Math.round(pct*100)}%)</span></div>`);
+  });
+  svgParts.push(
+    `<text x="${CX}" y="56" text-anchor="middle" font-family="Sora" font-size="16" font-weight="800" fill="#1A1A16">${total}</text>`,
+    `<text x="${CX}" y="72" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#7A7670">itens</text>`
+  );
+  svg.innerHTML    = svgParts.join('');
+  legend.innerHTML = legParts.join('');
 }
 
 // ── PERFIL ───────────────────────────────────────────────────
