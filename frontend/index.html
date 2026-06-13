@@ -1727,6 +1727,7 @@ async function init() {
     try {
       usuario = await api('GET', '/auth/me');
       atualizarNav();
+      carregarNotifBadge();
     } catch(e) { token = null; localStorage.removeItem('dec_token'); }
   }
 
