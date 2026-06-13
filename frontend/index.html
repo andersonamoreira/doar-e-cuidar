@@ -2103,6 +2103,21 @@ async function init() {
 
   renderLanding();
   renderFeed();
+
+  // Processar parâmetros de URL (links de e-mail)
+  const params = new URLSearchParams(window.location.search);
+  const acao   = params.get('acao');
+  const tkUrl  = params.get('token');
+  if (acao && tkUrl) {
+    // Limpa URL sem recarregar
+    history.replaceState({}, '', window.location.pathname);
+    if (acao === 'resetar') {
+      document.getElementById('reset-token').value = tkUrl;
+      ir('redefinir');
+    } else if (acao === 'verificar') {
+      verificarEmailToken(tkUrl);
+    }
+  }
 }
 
 init();
