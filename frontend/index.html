@@ -936,6 +936,22 @@ function logout() {
   ir('landing');
 }
 
+async function carregarNotifBadge() {
+  if (!token || !usuario) return;
+  try {
+    const notifs = await api('GET', '/usuarios/notificacoes');
+    const naoLidas = notifs.filter(n => !n.lida).length;
+    const badge = document.getElementById('notif-badge');
+    if (!badge) return;
+    if (naoLidas > 0) {
+      badge.textContent = naoLidas > 9 ? '9+' : naoLidas;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
 function toggleAvatarMenu() {
   document.getElementById('nav-avatar-menu').classList.toggle('aberto');
 }
