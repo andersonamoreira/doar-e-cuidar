@@ -1372,18 +1372,44 @@ function renderRevisao() {
 }
 
 async function publicarItem() {
-  const titulo            = document.getElementById('pub-nome').value.trim();
-  const categoria_id      = parseInt(document.getElementById('pub-cat').value);
+  const titulo             = document.getElementById('pub-nome').value.trim();
+  const categoria_id       = parseInt(document.getElementById('pub-cat').value);
   const estado_conservacao = document.getElementById('pub-estado').value;
-  const descricao         = document.getElementById('pub-desc').value.trim();
-  const cidade            = document.getElementById('pub-cidade').value.trim();
-  const cep               = document.getElementById('pub-cep').value.trim();
+  const descricao          = document.getElementById('pub-desc').value.trim();
+  const cidade             = document.getElementById('pub-cidade').value.trim();
+  const cep                = document.getElementById('pub-cep').value.trim();
   if (!titulo || !categoria_id || !estado_conservacao) { toast('Preencha os campos obrigatórios', 'terra'); return; }
   try {
-    await api('POST', '/itens', { titulo, categoria_id, estado_conservacao, descricao, cidade, cep });
-    pubStepAtual = 1; uploadCount = 0;
+    const item = await api('POST', '/itens', { titulo, categoria_id, estado_conservacao, descricao, cidade, cep });
+
+    // Upload das fotos sequencialmente
+    if (fotosParaEnviar.length) {
+      toast('Enviando fotos...', 'verde');
+      let enviadas = 0;
+      for (const foto of fotosParaEnviar) {
+        try {
+          const fd = new FormData();
+          fd.append('foto', foto);
+          const res = await fetch('/api/itens/' + item.id + '/imagens', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: fd,
+          });
+          if (res.ok) enviadas++;
+        } catch (_) { /* ignora erro individual de foto */ }
+      }
+      if (enviadas < fotosParaEnviar.length)
+        toast(`${enviadas}/${fotosParaEnviar.length} fotos enviadas`, 'terra');
+    }
+
+    // Reset
+    pubStepAtual = 1; fotosParaEnviar = [];
     document.getElementById('upload-previews').innerHTML = '';
-    ['pub-nome','pub-cat','pub-estado','pub-desc','pub-cidade','pub-cep'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const area = document.getElementById('upload-area');
+    if (area) area.style.display = '';
+    ['pub-nome','pub-cat','pub-estado','pub-desc','pub-cidade','pub-cep'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
     pubStep(1);
     toast('🎉 Item publicado com sucesso!', 'verde');
     ir('painel');
