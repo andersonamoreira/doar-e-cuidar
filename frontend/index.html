@@ -1038,8 +1038,11 @@ function tempoRelativo(ts) {
 }
 
 function itemCardHTML(item) {
+  const cardImg = item.imagem_principal
+    ? `<img src="${item.imagem_principal}" alt="${item.titulo}" loading="lazy">`
+    : (item.categoria_emoji || '📦');
   return `<div class="item-card" onclick="abrirItem(${item.id})">
-    <div class="item-card-img">${item.categoria_emoji || '📦'}</div>
+    <div class="item-card-img">${cardImg}</div>
     <div class="item-card-body">
       <div class="item-card-cat">${item.categoria_nome || ''}</div>
       <div class="item-card-title">${item.titulo}</div>
