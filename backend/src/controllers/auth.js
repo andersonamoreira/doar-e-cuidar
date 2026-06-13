@@ -24,8 +24,18 @@ const register = async (req, res, next) => {
       [nome, email, senha_hash, tipo, avatar_sigla, cidade || null, cep || null]
     );
 
-    const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.status(201).json({ user: rows[0], token });
+    const jwtToken = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // Envia e-mail de verificação de forma não-bloqueante
+    const verToken  = crypto.randomBytes(32).toString('hex');
+    const expira    = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    pool.query(
+      `INSERT INTO tokens_redefinicao (usuario_id, token, tipo, expira_em) VALUES ($1, $2, 'verificacao', $3)`,
+      [rows[0].id, verToken, expira]
+    ).then(() => enviarEmailVerificacao(email, nome, verToken))
+      .catch(err => console.error('[email-verificacao]', err.message));
+
+    res.status(201).json({ user: rows[0], token: jwtToken });
   } catch (err) { next(err); }
 };
 
