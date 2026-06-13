@@ -799,8 +799,767 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 <!-- ════════════════ JS ════════════════ -->
 <script>
-// ── DADOS ──────────────────────────────────────────────
-const ITENS = [
+// ── MAPEAMENTOS ─────────────────────────────────────────────
+const ESTADO_DISPLAY = {
+  novo:   '✨ Novo (sem uso)',
+  otimo:  '👍 Usado — ótimo estado',
+  bom:    '👌 Usado — bom estado',
+  reparo: '⚠️ Precisa de reparo',
+};
+
+// ── ESTADO GLOBAL ────────────────────────────────────────────
+let token      = localStorage.getItem('dec_token') || null;
+let usuario    = null;
+let categoriasMap = {};   // id → { id, nome, emoji, slug }
+let itemAtual  = null;
+let telaAnterior  = 'feed';
+let pubStepAtual  = 1;
+let uploadCount   = 0;
+let feedTimeout   = null;
+
+// ── API HELPER ───────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res  = await fetch('/api' + path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.erro || 'Erro ' + res.status);
+  return data;
+}
+
+// ── NAVEGAÇÃO ────────────────────────────────────────────────
+function ir(tela) {
+  if (['painel','publicar','perfil','dashboard'].includes(tela) && !usuario) {
+    mostrarAuth('login'); return;
+  }
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+  const el = document.getElementById('tela-' + tela);
+  if (el) el.classList.add('ativa');
+  window.scrollTo(0, 0);
+  if (tela === 'feed')      renderFeed();
+  if (tela === 'landing')   renderLanding();
+  if (tela === 'painel')    renderPainel();
+  if (tela === 'dashboard') renderDash();
+  if (tela === 'perfil')    renderPerfil();
+}
+function voltarFeed() { ir(telaAnterior || 'feed'); }
+
+// ── AUTH ─────────────────────────────────────────────────────
+function mostrarAuth(tab = 'login') { ir('auth'); switchAuthTab(tab); }
+
+function switchAuthTab(tab) {
+  document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('form-cadastro').style.display = tab === 'cadastro' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+  document.getElementById('tab-cadastro').classList.toggle('active', tab === 'cadastro');
+}
+
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  if (!email || !senha) { toast('Preencha e-mail e senha', 'terra'); return; }
+  try {
+    const data = await api('POST', '/auth/login', { email, senha });
+    autenticar(data.token, data.user);
+    toast('👋 Bem-vindo(a), ' + data.user.nome.split(' ')[0] + '!', 'verde');
+    ir('feed');
+  } catch(e) { toast(e.message, 'terra'); }
+}
+
+async function fazerCadastro() {
+  const nome  = document.getElementById('cad-nome').value.trim();
+  const email = document.getElementById('cad-email').value.trim();
+  const senha = document.getElementById('cad-senha').value;
+  const tipo  = document.getElementById('cad-tipo').value;
+  if (!nome || !email || !senha) { toast('Preencha todos os campos', 'terra'); return; }
+  if (senha.length < 8) { toast('Senha deve ter ao menos 8 caracteres', 'terra'); return; }
+  try {
+    const data = await api('POST', '/auth/register', { nome, email, senha, tipo });
+    autenticar(data.token, data.user);
+    toast('🎉 Conta criada! Bem-vindo(a), ' + data.user.nome.split(' ')[0] + '!', 'verde');
+    ir('feed');
+  } catch(e) { toast(e.message, 'terra'); }
+}
+
+function autenticar(tk, user) {
+  token = tk; usuario = user;
+  localStorage.setItem('dec_token', tk);
+  atualizarNav();
+}
+
+function atualizarNav() {
+  const ok = !!usuario;
+  document.getElementById('nav-guest').style.display  = ok ? 'none' : 'flex';
+  document.getElementById('nav-user').style.display   = ok ? 'flex'  : 'none';
+  document.getElementById('nav-painel').style.display = ok ? ''      : 'none';
+  document.getElementById('nav-dash').style.display   = ok ? ''      : 'none';
+  if (ok) document.getElementById('nav-avatar-btn').textContent = usuario.avatar_sigla || '?';
+}
+
+function logout() {
+  token = null; usuario = null;
+  localStorage.removeItem('dec_token');
+  atualizarNav();
+  toast('Você saiu da conta', 'terra');
+  ir('landing');
+}
+
+// ── LANDING ──────────────────────────────────────────────────
+async function renderLanding() {
+  const c = document.getElementById('cards-landing');
+  if (!c) return;
+  try {
+    const itens = await api('GET', '/itens?sort=recentes');
+    c.innerHTML = itens.length
+      ? itens.slice(0, 4).map(itemCardHTML).join('')
+      : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--cinza3)">Nenhuma doação disponível ainda. Seja o primeiro a publicar!</div>';
+  } catch(e) { c.innerHTML = ''; }
+}
+
+// ── FEED ─────────────────────────────────────────────────────
+function filtrarFeed() {
+  clearTimeout(feedTimeout);
+  feedTimeout = setTimeout(() => renderFeed(), 250);
+}
+
+async function renderFeed() {
+  const c = document.getElementById('cards-feed');
+  if (!c) return;
+  c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--cinza3)">Carregando...</div>';
+
+  const q         = document.getElementById('search-input')?.value.trim() || '';
+  const cidadeSel = document.getElementById('filter-cidade')?.value || '';
+  const sortVal   = document.querySelector('.sort-select')?.value || '';
+  const sortMap   = { 'Mais recentes':'recentes','Mais candidatos':'candidatos','A–Z':'az' };
+
+  const todaCheck = document.getElementById('cat-todas');
+  let catSlugs = [];
+  document.querySelectorAll('#filter-cats .filter-opt input[type=checkbox]').forEach(cb => {
+    if (cb.id === 'cat-todas' || !cb.checked) return;
+    const txt = cb.parentElement.textContent.trim();
+    const cat = Object.values(categoriasMap).find(c => txt.includes(c.nome));
+    if (cat) catSlugs.push(cat.slug);
+  });
+  const todasCats = todaCheck?.checked || catSlugs.length === 0;
+
+  let estadosSel = [];
+  document.querySelectorAll('#filter-estados .filter-opt input[type=checkbox]').forEach(cb => {
+    if (!cb.checked) return;
+    const txt = cb.parentElement.textContent.trim();
+    if      (txt.includes('Novo'))   estadosSel.push('novo');
+    else if (txt.includes('ótimo'))  estadosSel.push('otimo');
+    else if (txt.includes('bom'))    estadosSel.push('bom');
+  });
+
+  const params = new URLSearchParams({ sort: sortMap[sortVal] || 'recentes' });
+  if (q) params.set('q', q);
+  if (cidadeSel) params.set('cidade', cidadeSel);
+  if (!todasCats && catSlugs.length === 1) params.set('cat', catSlugs[0]);
+
+  try {
+    let itens = await api('GET', '/itens?' + params);
+    if (!todasCats && catSlugs.length > 1)
+      itens = itens.filter(i => catSlugs.includes(i.categoria_slug));
+    if (estadosSel.length > 0 && estadosSel.length < 3)
+      itens = itens.filter(i => estadosSel.includes(i.estado_conservacao));
+
+    document.getElementById('feed-count').textContent = itens.length + ' item(ns) encontrado(s)';
+    c.innerHTML = itens.length
+      ? itens.map(itemCardHTML).join('')
+      : `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--cinza3)">
+           <div style="font-size:2.4rem;margin-bottom:12px">🔍</div>
+           <div class="fw600 fs16" style="color:var(--cinza4)">Nenhum item encontrado</div>
+           <div class="fs13 mt8">Tente outros filtros ou termos de busca</div>
+         </div>`;
+  } catch(e) {
+    c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px">Erro ao carregar itens.</div>';
+  }
+
+  document.querySelectorAll('#filter-cats .filter-opt input[type=checkbox]').forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
+  document.querySelectorAll('#filter-estados .filter-opt input[type=checkbox]').forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
+}
+
+function toggleTodas(cb) {
+  if (cb.checked)
+    document.querySelectorAll('#filter-cats .filter-opt input:not(#cat-todas)').forEach(c => { c.checked = false; c.parentElement.classList.remove('active'); });
+  filtrarFeed();
+}
+function filtrarCat(cb) {
+  const todas = document.getElementById('cat-todas');
+  if (todas) { todas.checked = false; todas.parentElement.classList.remove('active'); }
+  const alguma = [...document.querySelectorAll('#filter-cats .filter-opt input:not(#cat-todas)')].some(c => c.checked);
+  if (!alguma && todas) { todas.checked = true; todas.parentElement.classList.add('active'); }
+  filtrarFeed();
+}
+function limparFiltros() {
+  const s = document.getElementById('search-input'); if (s) s.value = '';
+  document.querySelectorAll('#filter-cats .filter-opt input[type=checkbox]').forEach(cb => {
+    cb.checked = cb.id === 'cat-todas'; cb.parentElement.classList.toggle('active', cb.id === 'cat-todas');
+  });
+  document.querySelectorAll('#filter-estados .filter-opt input[type=checkbox]').forEach(cb => { cb.checked = true; cb.parentElement.classList.add('active'); });
+  const cidade = document.getElementById('filter-cidade'); if (cidade) cidade.value = '';
+  const sort   = document.querySelector('.sort-select');   if (sort)   sort.selectedIndex = 0;
+  filtrarFeed(); toast('Filtros limpos', 'verde');
+}
+
+function tempoRelativo(ts) {
+  if (!ts) return '';
+  const s = (Date.now() - new Date(ts)) / 1000;
+  if (s < 60)     return 'agora';
+  if (s < 3600)   return 'há ' + Math.floor(s / 60) + ' min';
+  if (s < 86400)  return 'há ' + Math.floor(s / 3600) + 'h';
+  if (s < 172800) return 'ontem';
+  return 'há ' + Math.floor(s / 86400) + ' dias';
+}
+
+function itemCardHTML(item) {
+  return `<div class="item-card" onclick="abrirItem(${item.id})">
+    <div class="item-card-img">${item.categoria_emoji || '📦'}</div>
+    <div class="item-card-body">
+      <div class="item-card-cat">${item.categoria_nome || ''}</div>
+      <div class="item-card-title">${item.titulo}</div>
+      <div class="item-card-desc">${item.descricao || ''}</div>
+      <div class="item-card-footer">
+        <div class="item-card-user">
+          <div class="avatar-xs">${item.doador_sigla || '?'}</div>
+          ${(item.doador_nome || '').split(' ')[0]} · ${item.cidade || ''}
+        </div>
+        <div class="item-card-cands">👥 ${item.total_candidatos || 0}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── DETALHE ITEM ─────────────────────────────────────────────
+async function abrirItem(id) {
+  telaAnterior = document.querySelector('.tela.ativa')?.id.replace('tela-', '') || 'feed';
+  ir('detalhe');
+  document.getElementById('det-title').textContent = 'Carregando...';
+  document.getElementById('det-img-main').textContent = '⏳';
+  document.getElementById('det-btn-wrap').innerHTML = '';
+  document.getElementById('det-cands-wrap').innerHTML = '';
+  document.getElementById('det-status-wrap').innerHTML = '';
+  document.getElementById('det-tags').innerHTML = '';
+  document.getElementById('det-desc').textContent = '';
+  document.getElementById('det-thumbs').innerHTML = '';
+  document.getElementById('det-details').innerHTML = '';
+  document.getElementById('det-doador').innerHTML = '';
+
+  try {
+    const i = await api('GET', '/itens/' + id);
+    itemAtual = i;
+    const estadoLabel = ESTADO_DISPLAY[i.estado_conservacao] || i.estado_conservacao;
+
+    document.getElementById('det-img-main').textContent = i.categoria_emoji || '📦';
+    document.getElementById('det-title').textContent = i.titulo;
+    document.getElementById('det-tags').innerHTML =
+      `<span class="badge badge-verde">${i.categoria_nome || ''}</span>
+       <span class="badge badge-cinza">${estadoLabel}</span>
+       <span class="badge badge-cinza">📍 ${i.cidade || 'Não informada'}</span>`;
+    document.getElementById('det-desc').textContent = i.descricao || '';
+    document.getElementById('det-details').innerHTML = `
+      <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+        <div class="fs12 muted mb4">Categoria</div><div class="fw600">${i.categoria_nome || ''}</div>
+      </div>
+      <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+        <div class="fs12 muted mb4">Estado</div><div class="fw600">${estadoLabel}</div>
+      </div>
+      <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+        <div class="fs12 muted mb4">Publicado</div><div class="fw600">${tempoRelativo(i.created_at)}</div>
+      </div>
+      <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px">
+        <div class="fs12 muted mb4">Localização</div><div class="fw600">${i.cidade || 'Não informada'}</div>
+      </div>`;
+    document.getElementById('det-doador').innerHTML = `
+      <div class="avatar-sm">${i.doador_sigla || '?'}</div>
+      <div><div class="fw600 fs14">${i.doador_nome || ''}</div><div class="fs12 muted">Doador verificado ✅</div></div>`;
+
+    const disponivel = i.status === 'disponivel';
+    document.getElementById('det-status-wrap').innerHTML = disponivel
+      ? `<span class="status-pill status-disponivel">🟢 Disponível para doação</span>`
+      : `<span class="status-pill status-concluido">🔴 ${i.status === 'concluido' ? 'Doação concluída' : 'Anúncio encerrado'}</span>`;
+    document.getElementById('det-cands-wrap').innerHTML = `
+      <div class="fw800 fs28 verde" style="font-family:var(--fonte)">${i.total_candidatos || 0}</div>
+      <div class="fs13 muted">candidatos interessados</div>`;
+
+    const isDoador = usuario && i.doador_id === usuario.id;
+    const wrap = document.getElementById('det-btn-wrap');
+    if (isDoador && disponivel) {
+      wrap.innerHTML = `
+        <button class="btn btn-primary btn-full" onclick="verCandidaturas(${i.id})">Ver candidaturas (${i.total_candidatos || 0})</button>
+        <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="abrirModalEditar(${i.id})">✏️ Editar anúncio</button>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px;color:var(--terra)" onclick="confirmarEncerrar(${i.id})">Encerrar anúncio</button>`;
+    } else if (usuario && disponivel && !isDoador) {
+      wrap.innerHTML = `<button class="btn btn-primary btn-full" onclick="abrirModalCandidatura()">💚 Quero este item</button>`;
+    } else if (!usuario) {
+      wrap.innerHTML = `<button class="btn btn-primary btn-full" onclick="mostrarAuth('cadastro')">Entrar para demonstrar interesse</button>`;
+    }
+  } catch(e) { toast('Erro ao carregar item', 'terra'); }
+}
+
+// ── CANDIDATURA (receptor) ────────────────────────────────────
+function abrirModalCandidatura() {
+  abrirModal(`
+    <div class="modal-header">
+      <div>
+        <div class="fw700 fs18" style="font-family:var(--fonte)">Manifestar interesse</div>
+        <div class="muted fs13 mt4">${itemAtual?.titulo || ''}</div>
+      </div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div style="background:var(--cinza1);border-radius:var(--r3);padding:12px;margin-bottom:20px;font-size:.867rem;color:var(--texto2);line-height:1.5">
+      💡 Escreva uma justificativa sincera. O doador lê todas antes de decidir.
+    </div>
+    <div class="form-stack">
+      <div class="form-group">
+        <label>Por que você gostaria de receber este item? *</label>
+        <textarea class="input" rows="5" id="just-text" placeholder="Conte sua situação e por que este item faria diferença na sua vida..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="enviarCandidatura()">Enviar minha candidatura</button>
+    </div>
+  `);
+}
+
+async function enviarCandidatura() {
+  const txt = document.getElementById('just-text')?.value;
+  if (!txt || txt.length < 20) { toast('Escreva ao menos 20 caracteres', 'terra'); return; }
+  try {
+    await api('POST', '/candidaturas', { item_id: itemAtual.id, justificativa: txt });
+    fecharModal();
+    setTimeout(() => abrirModal(`
+      <div class="success-modal">
+        <div class="success-icon">🎉</div>
+        <div class="fw800 fs20" style="font-family:var(--fonte);color:var(--preto)">Candidatura enviada!</div>
+        <p class="muted mt12 lh16">Sua justificativa foi registrada. O doador entrará em contato se você for selecionado.</p>
+        <button class="btn btn-primary btn-full" style="margin-top:24px" onclick="fecharModal()">Entendi, obrigado!</button>
+      </div>`), 200);
+  } catch(e) { toast(e.message, 'terra'); }
+}
+
+// ── CANDIDATURAS (doador) ─────────────────────────────────────
+async function verCandidaturas(itemId) {
+  try {
+    const cands = await api('GET', '/candidaturas/item/' + itemId);
+    const titulo = (itemAtual?.id === itemId ? itemAtual.titulo : '') || 'este item';
+    abrirModal(`
+      <div class="modal-header">
+        <div>
+          <div class="fw700 fs18" style="font-family:var(--fonte)">Candidaturas recebidas</div>
+          <div class="muted fs13 mt4">${titulo} · ${cands.length} candidato(s)</div>
+        </div>
+        <button class="modal-close" onclick="fecharModal()">✕</button>
+      </div>
+      ${!cands.length
+        ? '<div style="text-align:center;padding:40px;color:var(--cinza3)">Nenhuma candidatura ainda.</div>'
+        : cands.map(c => `
+          <div class="cand-item">
+            <div class="avatar-sm">${c.avatar_sigla || '?'}</div>
+            <div style="flex:1">
+              <div class="flex justify-between align-center">
+                <div class="fw600">${c.usuario_nome}</div>
+                <div class="fs12 muted">${tempoRelativo(c.created_at)}</div>
+              </div>
+              ${c.cidade ? `<div class="fs12 muted">📍 ${c.cidade}</div>` : ''}
+              <div class="cand-just">"${c.justificativa}"</div>
+              ${c.status === 'pendente'
+                ? `<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="selecionarBeneficiario(${c.id},'${c.usuario_nome.replace(/'/g,"\\'")}')">✅ Selecionar como beneficiário</button>`
+                : `<span class="badge ${c.status === 'selecionado' ? 'badge-verde' : 'badge-cinza'}" style="margin-top:10px;display:inline-flex">${c.status === 'selecionado' ? '✅ Selecionado' : 'Não selecionado'}</span>`
+              }
+            </div>
+          </div>`).join('')}
+    `);
+  } catch(e) { toast(e.message || 'Erro ao carregar candidaturas', 'terra'); }
+}
+
+async function selecionarBeneficiario(candId, nome) {
+  try {
+    await api('PATCH', '/candidaturas/' + candId + '/selecionar', {});
+    fecharModal();
+    setTimeout(() => abrirModal(`
+      <div class="success-modal">
+        <div class="success-icon">🎊</div>
+        <div class="fw800 fs20" style="font-family:var(--fonte);color:var(--preto)">Doação concluída!</div>
+        <p class="muted mt12 lh16"><strong>${nome}</strong> foi selecionado(a) como beneficiário. Uma notificação foi enviada para todos os candidatos.</p>
+        <button class="btn btn-primary btn-full" style="margin-top:20px" onclick="fecharModal();ir('painel')">Ver meu painel</button>
+      </div>`), 200);
+  } catch(e) { toast(e.message || 'Erro ao selecionar', 'terra'); }
+}
+
+// ── ENCERRAR DOAÇÃO ───────────────────────────────────────────
+function confirmarEncerrar(itemId) {
+  abrirModal(`
+    <div style="text-align:center;padding:8px">
+      <div style="font-size:2.4rem;margin-bottom:16px">⚠️</div>
+      <div class="fw700 fs18" style="font-family:var(--fonte);margin-bottom:8px">Encerrar anúncio?</div>
+      <p class="muted fs14 lh16">O item não ficará mais visível no feed e não receberá novas candidaturas.<br>Esta ação não pode ser desfeita.</p>
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button class="btn btn-secondary" style="flex:1" onclick="fecharModal()">Cancelar</button>
+        <button class="btn btn-terra" style="flex:1" onclick="encerrarItem(${itemId})">Sim, encerrar</button>
+      </div>
+    </div>
+  `);
+}
+
+async function encerrarItem(itemId) {
+  try {
+    await api('PATCH', '/itens/' + itemId + '/encerrar', {});
+    fecharModal();
+    toast('Anúncio encerrado', 'terra');
+    ir('painel');
+  } catch(e) { toast(e.message || 'Erro ao encerrar', 'terra'); }
+}
+
+// ── EDITAR DOAÇÃO ─────────────────────────────────────────────
+async function abrirModalEditar(itemId) {
+  try {
+    const item = await api('GET', '/itens/' + itemId);
+    const opts = Object.entries(ESTADO_DISPLAY)
+      .map(([v, l]) => `<option value="${v}"${item.estado_conservacao === v ? ' selected' : ''}>${l}</option>`)
+      .join('');
+    abrirModal(`
+      <div class="modal-header">
+        <div><div class="fw700 fs18" style="font-family:var(--fonte)">Editar anúncio</div></div>
+        <button class="modal-close" onclick="fecharModal()">✕</button>
+      </div>
+      <div class="form-stack">
+        <div class="form-group">
+          <label>Nome do item *</label>
+          <input type="text" class="input" id="edit-titulo" value="${item.titulo}">
+        </div>
+        <div class="form-group">
+          <label>Estado de conservação *</label>
+          <select class="input" id="edit-estado">${opts}</select>
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea class="input" rows="4" id="edit-desc">${item.descricao || ''}</textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group">
+            <label>Cidade</label>
+            <input type="text" class="input" id="edit-cidade" value="${item.cidade || ''}">
+          </div>
+          <div class="form-group">
+            <label>CEP</label>
+            <input type="text" class="input" id="edit-cep" value="${item.cep || ''}">
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <button class="btn btn-secondary" style="flex:1" onclick="fecharModal()">Cancelar</button>
+          <button class="btn btn-primary" style="flex:1" onclick="salvarEdicao(${itemId})">Salvar alterações</button>
+        </div>
+      </div>
+    `);
+  } catch(e) { toast('Erro ao carregar dados do item', 'terra'); }
+}
+
+async function salvarEdicao(itemId) {
+  const titulo            = document.getElementById('edit-titulo').value.trim();
+  const estado_conservacao = document.getElementById('edit-estado').value;
+  const descricao         = document.getElementById('edit-desc').value.trim();
+  const cidade            = document.getElementById('edit-cidade').value.trim();
+  const cep               = document.getElementById('edit-cep').value.trim();
+  if (!titulo || !estado_conservacao) { toast('Preencha os campos obrigatórios', 'terra'); return; }
+  try {
+    await api('PUT', '/itens/' + itemId, { titulo, descricao, estado_conservacao, cidade, cep });
+    fecharModal();
+    toast('Anúncio atualizado com sucesso!', 'verde');
+    renderPainel();
+  } catch(e) { toast(e.message || 'Erro ao salvar', 'terra'); }
+}
+
+// ── PUBLICAR ─────────────────────────────────────────────────
+function pubStep(n) {
+  document.getElementById('pub-step' + pubStepAtual).style.display = 'none';
+  pubStepAtual = n;
+  document.getElementById('pub-step' + n).style.display = 'block';
+  [1,2,3].forEach(i => {
+    const dot   = document.getElementById('sdot' + i);
+    const label = document.getElementById('slabel' + i);
+    if (i < n)      { dot.className = 'step-dot done';    dot.textContent = '✓'; label.style.color = 'var(--verde)'; }
+    else if (i ===n){ dot.className = 'step-dot current'; dot.textContent = i;   label.style.color = 'var(--verde)'; }
+    else            { dot.className = 'step-dot pending'; dot.textContent = i;   label.style.color = 'var(--cinza3)'; }
+    if (i < 3) { const l = document.getElementById('sline' + i); if (l) l.className = 'step-line' + (i < n ? ' done' : ''); }
+  });
+  if (n === 3) renderRevisao();
+}
+
+function simularUpload() {
+  if (uploadCount >= 5) { toast('Máximo de 5 imagens atingido', 'terra'); return; }
+  const emojis = ['🛋️','🏠','📷','🔍','✨'];
+  document.getElementById('upload-previews').innerHTML += `<div class="upload-preview">${emojis[uploadCount]}</div>`;
+  uploadCount++;
+  toast('Foto adicionada (' + uploadCount + '/5)', 'verde');
+}
+
+function renderRevisao() {
+  const nome  = document.getElementById('pub-nome').value  || '(sem título)';
+  const catId = document.getElementById('pub-cat').value;
+  const catObj= catId ? Object.values(categoriasMap).find(c => c.id == catId) : null;
+  const cat   = catObj ? catObj.emoji + ' ' + catObj.nome : '(sem categoria)';
+  const estado= ESTADO_DISPLAY[document.getElementById('pub-estado').value] || '(sem estado)';
+  const desc  = document.getElementById('pub-desc').value  || '(sem descrição)';
+  const cidade= document.getElementById('pub-cidade').value || 'Não informada';
+  document.getElementById('pub-revisao').innerHTML = `
+    <div class="fw700 fs16 mb16" style="font-family:var(--fonte)">Resumo da publicação</div>
+    <div style="display:grid;gap:10px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Nome</span><span class="fw600 fs13">${nome}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Categoria</span><span class="fw600 fs13">${cat}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Estado</span><span class="fw600 fs13">${estado}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cinza1)">
+        <span class="muted fs13">Cidade</span><span class="fw600 fs13">${cidade}</span>
+      </div>
+      <div style="padding:8px 0">
+        <span class="muted fs13 mb4" style="display:block">Descrição</span>
+        <span class="fs13" style="color:var(--texto2)">${desc}</span>
+      </div>
+      ${uploadCount > 0 ? `<div style="padding:8px 0"><span class="muted fs13">Fotos</span> <span class="fw600 fs13 verde">${uploadCount} imagem(ns) adicionada(s)</span></div>` : ''}
+    </div>`;
+}
+
+async function publicarItem() {
+  const titulo            = document.getElementById('pub-nome').value.trim();
+  const categoria_id      = parseInt(document.getElementById('pub-cat').value);
+  const estado_conservacao = document.getElementById('pub-estado').value;
+  const descricao         = document.getElementById('pub-desc').value.trim();
+  const cidade            = document.getElementById('pub-cidade').value.trim();
+  const cep               = document.getElementById('pub-cep').value.trim();
+  if (!titulo || !categoria_id || !estado_conservacao) { toast('Preencha os campos obrigatórios', 'terra'); return; }
+  try {
+    await api('POST', '/itens', { titulo, categoria_id, estado_conservacao, descricao, cidade, cep });
+    pubStepAtual = 1; uploadCount = 0;
+    document.getElementById('upload-previews').innerHTML = '';
+    ['pub-nome','pub-cat','pub-estado','pub-desc','pub-cidade','pub-cep'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    pubStep(1);
+    toast('🎉 Item publicado com sucesso!', 'verde');
+    ir('painel');
+  } catch(e) { toast(e.message || 'Erro ao publicar', 'terra'); }
+}
+
+// ── PAINEL ───────────────────────────────────────────────────
+async function renderPainel() {
+  if (!usuario) { ir('landing'); return; }
+  const grid = document.getElementById('meus-items-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cinza3)">Carregando...</div>';
+  try {
+    const itens = await api('GET', '/itens/meus');
+    const ativos    = itens.filter(i => i.status === 'disponivel').length;
+    const totalCands= itens.reduce((a, i) => a + (i.total_candidatos || 0), 0);
+    const conc      = itens.filter(i => i.status === 'concluido').length;
+    document.getElementById('stat-total').textContent = ativos;
+    document.getElementById('stat-cands').textContent = totalCands;
+    document.getElementById('stat-conc').textContent  = conc;
+    document.getElementById('painel-count').textContent = itens.length + ' publicação(ões)';
+
+    if (!itens.length) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px">
+        <div style="font-size:2.4rem;margin-bottom:12px">📦</div>
+        <div class="fw600 fs16" style="color:var(--cinza4)">Nenhuma doação publicada ainda</div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="ir('publicar')">+ Publicar primeira doação</button>
+      </div>`; return;
+    }
+
+    grid.innerHTML = itens.map(item => {
+      const statusBadge = {
+        disponivel: '<span class="badge badge-verde">Ativo</span>',
+        concluido:  '<span class="badge badge-cinza">Concluído</span>',
+        cancelado:  '<span class="badge" style="background:var(--terra2);color:var(--terra)">Encerrado</span>',
+      }[item.status] || '';
+      return `<div class="meu-item">
+        <div class="meu-item-img">${item.categoria_emoji || '📦'}</div>
+        <div class="meu-item-body">
+          <div class="fs12 muted mb4">${item.categoria_nome || ''}</div>
+          <div class="fw700" style="font-family:var(--fonte);margin-bottom:6px">${item.titulo}</div>
+          <div class="fs13 muted">${item.cidade || ''} · ${tempoRelativo(item.created_at)}</div>
+        </div>
+        <div class="meu-item-footer">
+          <div style="display:flex;align-items:center;gap:6px">
+            ${statusBadge}
+            ${item.status === 'disponivel' ? `<span class="cands-badge">👥 ${item.total_candidatos || 0}</span>` : ''}
+          </div>
+          <div style="display:flex;gap:6px">
+            ${item.status === 'disponivel' && item.total_candidatos > 0
+              ? `<button class="btn btn-primary btn-sm" onclick="verCandidaturas(${item.id})">Ver</button>` : ''}
+            ${item.status === 'disponivel' ? `
+              <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${item.id})" title="Editar">✏️</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--terra)" onclick="confirmarEncerrar(${item.id})" title="Encerrar">✕</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { grid.innerHTML = '<div style="text-align:center;padding:40px">Erro ao carregar itens.</div>'; }
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+function renderDash() {
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const bc = document.getElementById('bar-chart');
+  if (!bc) return;
+  bc.innerHTML = meses.map(m => `
+    <div class="bar-wrap">
+      <div class="bar-val">0</div>
+      <div class="bar" style="height:4px;background:var(--cinza2)"></div>
+      <div class="bar-label">${m}</div>
+    </div>`).join('');
+  const svg = document.getElementById('donut-svg');
+  if (!svg) return;
+  svg.innerHTML = '<circle cx="60" cy="60" r="46" fill="none" stroke="#F5F4F0" stroke-width="14"/>' +
+    '<text x="60" y="56" text-anchor="middle" font-family="Sora" font-size="16" font-weight="800" fill="#1A1A16">0%</text>' +
+    '<text x="60" y="72" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#7A7670">conversão</text>';
+  const legend = document.getElementById('donut-legend'); if (legend) legend.innerHTML = '';
+}
+
+// ── PERFIL ───────────────────────────────────────────────────
+async function renderPerfil() {
+  if (!usuario) { ir('landing'); return; }
+  document.getElementById('perfil-avatar').textContent = usuario.avatar_sigla || '?';
+  document.getElementById('perfil-nome').textContent   = usuario.nome;
+  document.getElementById('perfil-email').textContent  = usuario.email;
+  try {
+    const stats = await api('GET', '/usuarios/estatisticas');
+    const el = document.getElementById('perfil-stats');
+    if (el) el.innerHTML = `
+      <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--verde)">${stats.doacoes_realizadas}</div>
+      <div class="fs12 muted">Doações realizadas</div>
+      <div style="font-family:var(--fonte);font-size:1.4rem;font-weight:800;color:var(--terra);margin-top:8px">${stats.itens_recebidos}</div>
+      <div class="fs12 muted">Itens recebidos</div>`;
+  } catch(e) {}
+  perfilTab('doacoes', document.querySelector('.perfil-tab'));
+}
+
+async function perfilTab(tab, btn) {
+  document.querySelectorAll('.perfil-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const content = document.getElementById('perfil-content');
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cinza3)">Carregando...</div>';
+
+  if (tab === 'doacoes') {
+    try {
+      const itens = await api('GET', '/itens/meus');
+      if (!itens.length) { content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cinza3)">Nenhuma doação publicada ainda.</div>'; return; }
+      const SBADGE = { disponivel:'badge-verde', concluido:'badge-cinza', cancelado:'badge-cinza' };
+      const SLABEL = { disponivel:'Ativo', concluido:'Concluído', cancelado:'Encerrado' };
+      content.innerHTML = `<div style="display:grid;gap:12px">${itens.map(i => `
+        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px;display:flex;align-items:center;gap:16px">
+          <div style="width:56px;height:56px;border-radius:var(--r3);background:var(--cinza1);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${i.categoria_emoji || '📦'}</div>
+          <div style="flex:1"><div class="fw700">${i.titulo}</div><div class="fs13 muted mt4">${i.cidade || ''} · ${tempoRelativo(i.created_at)}</div></div>
+          <span class="badge ${SBADGE[i.status] || 'badge-cinza'}">${SLABEL[i.status] || i.status}</span>
+        </div>`).join('')}</div>`;
+    } catch(e) { content.innerHTML = '<div style="text-align:center;padding:40px">Erro ao carregar.</div>'; }
+
+  } else if (tab === 'candidaturas') {
+    try {
+      const cands = await api('GET', '/candidaturas/minhas');
+      if (!cands.length) { content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cinza3)">Nenhuma candidatura enviada ainda.</div>'; return; }
+      const SLABEL = { pendente:'Em análise', selecionado:'✅ Selecionado', rejeitado:'Não selecionado' };
+      const SBADGE = { pendente:'badge-cinza', selecionado:'badge-verde', rejeitado:'badge-cinza' };
+      content.innerHTML = `<div style="display:grid;gap:12px">${cands.map(c => `
+        <div style="background:var(--branco);border-radius:var(--r2);border:1px solid var(--cinza2);padding:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <div style="font-size:1.6rem">${c.categoria_emoji || '📦'}</div>
+            <div><div class="fw700">${c.titulo}</div><div class="fs13 muted">${tempoRelativo(c.created_at)}</div></div>
+            <span class="badge ${SBADGE[c.status] || 'badge-cinza'}" style="margin-left:auto">${SLABEL[c.status] || c.status}</span>
+          </div>
+          <div style="background:var(--cinza1);border-radius:var(--r3);padding:10px;font-size:.833rem;color:var(--texto2);font-style:italic">"${c.justificativa}"</div>
+        </div>`).join('')}</div>`;
+    } catch(e) { content.innerHTML = '<div style="text-align:center;padding:40px">Erro ao carregar.</div>'; }
+
+  } else {
+    content.innerHTML = `
+      <div style="background:var(--branco);border-radius:var(--r);border:1px solid var(--cinza2);padding:24px">
+        <div class="fw700 fs16 mb16" style="font-family:var(--fonte)">Dados da conta</div>
+        <div class="form-stack">
+          <div class="form-group"><label>Nome completo</label><input type="text" class="input" id="edit-perfil-nome" value="${usuario?.nome || ''}"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" class="input" value="${usuario?.email || ''}" disabled style="opacity:.6"></div>
+          <div class="form-group"><label>Cidade</label><input type="text" class="input" id="edit-perfil-cidade" value="${usuario?.cidade || ''}"></div>
+          <div style="display:flex;gap:12px">
+            <button class="btn btn-primary" onclick="salvarPerfil()">Salvar alterações</button>
+            <button class="btn btn-ghost" style="color:var(--cinza4)" onclick="logout()">Sair da conta</button>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+async function salvarPerfil() {
+  const nome   = document.getElementById('edit-perfil-nome').value.trim();
+  const cidade = document.getElementById('edit-perfil-cidade').value.trim();
+  if (!nome) { toast('Nome é obrigatório', 'terra'); return; }
+  try {
+    const updated = await api('PUT', '/usuarios/perfil', { nome, cidade });
+    usuario.nome = updated.nome; usuario.cidade = updated.cidade; usuario.avatar_sigla = updated.avatar_sigla;
+    document.getElementById('perfil-nome').textContent = nome;
+    document.getElementById('perfil-avatar').textContent = updated.avatar_sigla;
+    document.getElementById('nav-avatar-btn').textContent = updated.avatar_sigla;
+    toast('Perfil atualizado!', 'verde');
+  } catch(e) { toast(e.message || 'Erro ao salvar', 'terra'); }
+}
+
+// ── MODAL ────────────────────────────────────────────────────
+function abrirModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal(e) {
+  if (e && e.target !== document.getElementById('modal-backdrop')) return;
+  document.getElementById('modal-backdrop').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function toast(msg, tipo = 'verde') {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.borderLeft = `4px solid ${tipo === 'verde' ? 'var(--verde)' : 'var(--terra)'}`;
+  t.innerHTML = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init() {
+  // Carregar categorias e popular select
+  try {
+    const cats = await api('GET', '/categorias');
+    cats.forEach(c => { categoriasMap[c.id] = c; });
+    const sel = document.getElementById('pub-cat');
+    if (sel) {
+      sel.innerHTML = '<option value="">Selecione a categoria...</option>';
+      cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.emoji + ' ' + c.nome;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) { console.warn('Categorias:', e); }
+
+  // Restaurar sessão do localStorage
+  if (token) {
+    try {
+      usuario = await api('GET', '/auth/me');
+      atualizarNav();
+    } catch(e) { token = null; localStorage.removeItem('dec_token'); }
+  }
+
+  renderLanding();
+  renderFeed();
+}
+
+// ── REMOVER BLOCO ANTIGO (não usado abaixo) ──────────────────
+// As funções a seguir são legado e foram substituídas acima.
+// Mantidas como stub para evitar erros em onclick inline.
+function logarUsuario() {}
+
+init();
   {id:1,emoji:'🛋️',titulo:'Sofá 3 lugares bege',cat:'Móveis',estado:'Usado — ótimo estado',desc:'Sofá em excelente estado, tecido bege, sem manchas. Compramos um novo e queremos que esse vá para uma família que precise. Dimensões: 2,20m x 90cm x 85cm.',cidade:'Serra',candidatos:4,data:'2 dias atrás',doador:{nome:'Maria Silva',sigla:'MS'},emojis:['🛋️','🛋️','🏠'],tags:['Ótimo estado','Com almofadas']},
   {id:2,emoji:'❄️',titulo:'Geladeira Consul 340L',cat:'Eletrodomésticos',estado:'Usado — bom estado',desc:'Geladeira em funcionamento perfeito, gela muito bem. Fazendo troca por modelo maior. Retirada na residência.',cidade:'Vila Velha',candidatos:18,data:'1 dia atrás',doador:{nome:'Carlos Pereira',sigla:'CP'},emojis:['❄️','🔌'],tags:['Funcionando','Retirada local']},
   {id:3,emoji:'📚',titulo:'Kit 30 livros didáticos Ensino Médio',cat:'Livros',estado:'Usado — bom estado',desc:'Coleção completa de livros do ensino médio: Matemática, Português, História, Geografia, Biologia e Química. Meu filho se formou e não precisa mais.',cidade:'Vitória',candidatos:7,data:'3 dias atrás',doador:{nome:'Ana Oliveira',sigla:'AO'},emojis:['📚','📖'],tags:['30 volumes','EM completo']},
