@@ -917,6 +917,7 @@ function autenticar(tk, user) {
   token = tk; usuario = user;
   localStorage.setItem('dec_token', tk);
   atualizarNav();
+  carregarNotifBadge();
 }
 
 function atualizarNav() {
